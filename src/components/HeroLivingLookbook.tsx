@@ -111,7 +111,7 @@ export function HeroLivingLookbook() {
   const titleColor = `rgb(${titleR}, ${titleG}, ${titleB})`;
   const titleShadow =
     easedMove < 0.45
-      ? `0 8px 32px rgba(0, 0, 0, ${0.45 * (1 - easedMove * 2.2)})`
+      ? `0 4px 28px rgba(0, 0, 0, ${0.85 * (1 - easedMove * 2.2)}), 0 2px 6px rgba(0, 0, 0, ${0.95 * (1 - easedMove * 2.2)})`
       : 'none';
 
   // 4. Split Hero elements (Editorial subtitle, description, CTA buttons, arrows):
@@ -546,14 +546,31 @@ export function HeroLivingLookbook() {
             );
           }
           .hero-split-content-container {
-            align-items: flex-start;
+            align-items: flex-end !important;
+            justify-content: center !important;
+            padding-bottom: clamp(2.5rem, 5vh, 4rem) !important;
           }
           .hero-left-text-column {
-            padding-top: clamp(11.5rem, 20vh, 14.5rem) !important;
+            padding-top: 1.35rem !important;
+            padding-bottom: 1.6rem !important;
+            padding-left: 1.35rem !important;
+            padding-right: 1.35rem !important;
+            margin: 0 1rem !important;
+            max-width: 440px !important;
+            background: linear-gradient(180deg, rgba(250, 248, 245, 0.95) 0%, rgba(250, 248, 245, 0.98) 100%) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
+            border: 1px solid rgba(197, 168, 128, 0.45) !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22) !important;
           }
           .hero-floating-brand-title {
             left: 50% !important;
             transform: translate(-50%, -50%) !important;
+          }
+          .hero-opening-text-container {
+            background: radial-gradient(ellipse at center, rgba(14, 11, 9, 0.65) 0%, rgba(14, 11, 9, 0.3) 70%, transparent 100%) !important;
+            padding: 1.25rem 1rem !important;
+            border-radius: 8px !important;
           }
         }
         .hero-bottom-gradient-mask {

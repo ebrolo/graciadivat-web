@@ -181,8 +181,8 @@ export function ContactBoutique() {
               </div>
             </div>
 
-            {/* Actions - Interactive Hover Reveal Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            {/* Actions - Interactive Hover Reveal Buttons (Compact & Left-Aligned) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', alignItems: 'flex-start' }}>
               <a
                 href={`tel:${brand.phone}`}
                 className="btn-interactive-reveal gold"
@@ -253,8 +253,10 @@ export function ContactBoutique() {
           align-items: center;
           justify-content: center;
           height: 52px;
-          width: 100%;
-          padding: 0 1.5rem;
+          width: fit-content;
+          min-width: 190px;
+          align-self: flex-start;
+          padding: 0 1.6rem;
           overflow: hidden;
           cursor: pointer;
           text-decoration: none;

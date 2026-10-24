@@ -263,8 +263,8 @@ export function Footer() {
             </h4>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-on-dark-muted)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
               {language === 'hu'
-                ? 'Kövess minket a legfrissebb szalonmodellekért és divatinspirációkért!'
-                : 'Follow our channels for newly arrived salon styles and style inspiration!'}
+                ? 'Kövess minket a legfrissebb darabokért, aktuális kedvezményekért és divatinspirációkért!'
+                : 'Follow our channels for new arrivals, current promotions and fashion inspiration!'}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
               {social.map((item) => (
@@ -309,7 +309,7 @@ export function Footer() {
           }}
         >
           <div>
-            © {currentYear}{' '}
+            © <span suppressHydrationWarning>{currentYear}</span>{' '}
             <a
               href="https://ebrolo.hu/"
               target="_blank"
@@ -335,9 +335,29 @@ export function Footer() {
       </div>
 
       <style jsx global>{`
+        .footer-nav-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          position: relative;
+          width: fit-content;
+          transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .footer-nav-link::before {
+          content: '→';
+          font-size: 0.82rem;
+          color: var(--accent-gold);
+          opacity: 0;
+          transform: translateX(-6px);
+          transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
         .footer-nav-link:hover {
           color: var(--accent-gold) !important;
-          transform: translateX(4px);
+          transform: translateX(6px);
+        }
+        .footer-nav-link:hover::before {
+          opacity: 1;
+          transform: translateX(0);
         }
         .footer-social-icon-btn:hover {
           background-color: var(--accent-gold) !important;

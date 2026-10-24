@@ -304,10 +304,12 @@ export function ReviewsSection() {
           transform: translateY(-50%) scale(1.05);
         }
         .review-direct-btn {
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          justify-content: space-between;
-          padding: 0.75rem 1rem;
+          gap: 0.65rem;
+          align-self: flex-start;
+          width: fit-content;
+          padding: 0.55rem 1.15rem;
           font-size: 0.78rem;
           font-weight: 600;
           letter-spacing: 0.05em;

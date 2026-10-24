@@ -34,6 +34,12 @@ export function FloatingSocialBar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const containerRef = useRef<HTMLElement>(null);
 
+  // Mobile Messenger Chathead Dragging State
+  const [mobilePos, setMobilePos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingTouch, setIsDraggingTouch] = useState(false);
+  const dragStartRef = useRef<{ clientX: number; clientY: number; startX: number; startY: number } | null>(null);
+  const hasMovedRef = useRef(false);
+
   useEffect(() => {
     const updatePosition = () => {
       const bar = containerRef.current;
@@ -47,21 +53,32 @@ export function FloatingSocialBar() {
       const mapRect = mapEl.getBoundingClientRect();
       const mapBottomDoc = mapRect.bottom + window.scrollY;
       const barHeight = bar.offsetHeight || 260;
-      const fixedBarBottomDoc = window.scrollY + window.innerHeight - 24;
 
-      if (fixedBarBottomDoc >= mapBottomDoc) {
-        // Clamp strictly to the bottom of the map - stop right there
-        const stopTopDoc = Math.round(mapBottomDoc - barHeight);
-        bar.style.position = 'absolute';
-        bar.style.top = `${stopTopDoc}px`;
-        bar.style.bottom = 'auto';
-        bar.style.transform = 'none';
+      // On desktop (>= 768px):
+      if (window.innerWidth >= 768) {
+        const fixedBarBottomDoc = window.scrollY + window.innerHeight - 24;
+        if (fixedBarBottomDoc >= mapBottomDoc) {
+          const stopTopDoc = Math.round(mapBottomDoc - barHeight);
+          bar.style.position = 'absolute';
+          bar.style.top = `${stopTopDoc}px`;
+          bar.style.bottom = 'auto';
+          bar.style.left = 'auto';
+          bar.style.right = 'clamp(1rem, 2vw, 1.75rem)';
+        } else {
+          bar.style.position = 'fixed';
+          bar.style.top = 'auto';
+          bar.style.bottom = '24px';
+          bar.style.left = 'auto';
+          bar.style.right = 'clamp(1rem, 2vw, 1.75rem)';
+        }
       } else {
-        // Float fixed relative to the active viewport
-        bar.style.position = 'fixed';
-        bar.style.top = 'auto';
-        bar.style.bottom = '24px';
-        bar.style.transform = 'none';
+        // On mobile: clamp vertical position if scrolled down into footer
+        if (mobilePos) {
+          const maxAllowedY = Math.min(window.innerHeight - barHeight - 20, mapRect.bottom - barHeight - 10);
+          if (mobilePos.y > maxAllowedY) {
+            setMobilePos((prev) => (prev ? { ...prev, y: Math.max(75, maxAllowedY) } : null));
+          }
+        }
       }
     };
 
@@ -73,7 +90,84 @@ export function FloatingSocialBar() {
       window.removeEventListener('scroll', updatePosition);
       window.removeEventListener('resize', updatePosition);
     };
-  }, []);
+  }, [mobilePos]);
+
+  // Touch Swipe & Drag Handlers for Mobile Messenger Chathead Physics
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.innerWidth >= 768) return;
+    const touch = e.touches[0];
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    dragStartRef.current = {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      startX: rect.left,
+      startY: rect.top,
+    };
+    hasMovedRef.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!dragStartRef.current) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - dragStartRef.current.clientX;
+    const dy = touch.clientY - dragStartRef.current.clientY;
+
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+      hasMovedRef.current = true;
+      setIsDraggingTouch(true);
+    }
+
+    if (!hasMovedRef.current) return;
+
+    let newX = dragStartRef.current.startX + dx;
+    let newY = dragStartRef.current.startY + dy;
+
+    const barWidth = containerRef.current?.offsetWidth || 48;
+    const barHeight = containerRef.current?.offsetHeight || 100;
+    const minX = 8;
+    const maxX = window.innerWidth - barWidth - 8;
+    const minY = 75; // below top navbar
+
+    // Clamped strictly so it cannot be dragged into the footer
+    const mapEl = document.getElementById('contact-map-container') || document.querySelector('#contact');
+    let maxY = window.innerHeight - barHeight - 20;
+    if (mapEl) {
+      const mapRect = mapEl.getBoundingClientRect();
+      if (mapRect.bottom < window.innerHeight) {
+        maxY = Math.min(maxY, mapRect.bottom - barHeight - 10);
+      }
+    }
+
+    newX = Math.max(minX, Math.min(maxX, newX));
+    newY = Math.max(minY, Math.min(maxY, newY));
+
+    setMobilePos({ x: newX, y: newY });
+  };
+
+  const handleTouchEnd = () => {
+    if (!hasMovedRef.current) {
+      // It was a tap, not a drag: toggle collapsed drawer
+      dragStartRef.current = null;
+      setIsDraggingTouch(false);
+      return;
+    }
+
+    setIsDraggingTouch(false);
+    if (!mobilePos) {
+      dragStartRef.current = null;
+      return;
+    }
+
+    // Magnetic edge snap to nearest side (Messenger Chathead style!)
+    const barWidth = containerRef.current?.offsetWidth || 48;
+    const snapToLeft = mobilePos.x < window.innerWidth / 2;
+    const snappedX = snapToLeft ? 8 : window.innerWidth - barWidth - 8;
+
+    setMobilePos({ x: snappedX, y: mobilePos.y });
+    dragStartRef.current = null;
+  };
 
   const getIcon = (id: string) => {
     switch (id) {
@@ -92,20 +186,31 @@ export function FloatingSocialBar() {
     }
   };
 
+  const isDockedOnLeft = Boolean(mobilePos && mobilePos.x < 150);
+
   return (
     <aside
       ref={containerRef}
       aria-label="Közösségi média gyorselérés"
-      className={`floating-social-container ${isCollapsed ? 'is-collapsed' : ''}`}
+      className={`floating-social-container ${isCollapsed ? 'is-collapsed' : ''} ${isDockedOnLeft ? 'docked-left' : ''}`}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       style={{
-        position: 'fixed',
-        right: isCollapsed ? '0px' : 'clamp(1rem, 2vw, 1.75rem)',
-        bottom: '24px',
-        zIndex: 90,
+        position: mobilePos ? 'fixed' : 'fixed',
+        left: mobilePos ? `${mobilePos.x}px` : (isDockedOnLeft ? '8px' : 'auto'),
+        top: mobilePos ? `${mobilePos.y}px` : 'auto',
+        right: mobilePos ? 'auto' : (isCollapsed ? '0px' : 'clamp(1rem, 2vw, 1.75rem)'),
+        bottom: mobilePos ? 'auto' : '24px',
+        zIndex: 95,
         display: 'flex',
+        flexDirection: isDockedOnLeft ? 'row-reverse' : 'row',
         alignItems: 'center',
         gap: '0.35rem',
-        transition: 'right 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+        transition: isDraggingTouch
+          ? 'none'
+          : 'left 0.35s cubic-bezier(0.16, 1, 0.3, 1), right 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        touchAction: 'none',
       }}
     >
       {/* Social Links Stack */}
@@ -116,7 +221,7 @@ export function FloatingSocialBar() {
           gap: '0.45rem',
           maxWidth: isCollapsed ? '0px' : '60px',
           overflow: 'hidden',
-          transform: isCollapsed ? 'translateX(20px)' : 'translateX(0)',
+          transform: isCollapsed ? (isDockedOnLeft ? 'translateX(-20px)' : 'translateX(20px)') : 'translateX(0)',
           opacity: isCollapsed ? 0 : 1,
           pointerEvents: isCollapsed ? 'none' : 'auto',
           transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -138,15 +243,25 @@ export function FloatingSocialBar() {
         ))}
       </div>
 
-      {/* Toggle Arrow Button */}
+      {/* Toggle Arrow Button with Drag Handle Affordance */}
       <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        onClick={(e) => {
+          if (hasMovedRef.current) {
+            e.preventDefault();
+            return;
+          }
+          setIsCollapsed(!isCollapsed);
+        }}
         aria-label={isCollapsed ? 'Közösségi ikonok megjelenítése' : 'Közösségi ikonok elrejtése'}
         className="floating-social-toggle-btn"
         id="social-bar-toggle-btn"
         title={isCollapsed ? 'Közösségi ikonok megjelenítése' : 'Elrejtés'}
       >
-        {isCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+        {isDockedOnLeft ? (
+          isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />
+        ) : (
+          isCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />
+        )}
       </button>
 
       <style jsx global>{`
@@ -214,7 +329,10 @@ export function FloatingSocialBar() {
           transform: translateY(-50%) translateX(-4px);
         }
         @media (max-width: 640px) {
-          .floating-social-container {
+          .floating-social-container.is-collapsed:not([style*="left:"]) {
+            right: 0px !important;
+          }
+          .floating-social-container:not(.is-collapsed):not([style*="left:"]) {
             right: 0.75rem !important;
           }
           .floating-social-btn {

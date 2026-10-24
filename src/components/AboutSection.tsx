@@ -12,7 +12,7 @@ export function AboutSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Track scroll progress across 170vh track
+  // Track scroll progress across scroll track
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -33,6 +33,7 @@ export function AboutSection() {
 
   const p = scrollProgress;
 
+  // Desktop active calculations:
   // Statement 0 (Időt szánunk rád): Active p = 0.00 -> 0.34
   const op0 = p < 0.26 ? 1 : Math.max(0, 1 - (p - 0.26) / 0.10);
   const ty0 = p < 0.26 ? 0 : -(p - 0.26) * 60;
@@ -55,19 +56,23 @@ export function AboutSection() {
   const op2 = p < 0.62 ? 0 : Math.min(1, (p - 0.62) / 0.10);
   const ty2 = p < 0.62 ? 20 : (1 - op2) * 20;
 
-  const statementsState = [
+  const statementsDesktop = [
     { opacity: op0, translateY: ty0 },
     { opacity: op1, translateY: ty1 },
     { opacity: op2, translateY: ty2 },
   ];
 
-  // Active index for the minimalist indicator lines
+  // Active index for indicator lines and mobile center cycle
   let activeIndex = 0;
-  if (p >= 0.62) {
+  if (p >= 0.54) {
     activeIndex = 2;
-  } else if (p >= 0.30) {
+  } else if (p >= 0.28) {
     activeIndex = 1;
   }
+
+  // Mobile Stack Phase: when user scrolls past (p >= 0.74), all 3 statements stack vertically
+  const isStackedMobile = p >= 0.74;
+  const stackProgress = Math.max(0, Math.min(1, (p - 0.74) / 0.18));
 
   return (
     <div
@@ -76,7 +81,6 @@ export function AboutSection() {
       className="about-scroll-track"
       style={{
         position: 'relative',
-        height: '170vh',
         width: '100%',
         backgroundColor: '#F8F5EE',
         borderTop: '1px solid rgba(197, 168, 128, 0.35)',
@@ -97,24 +101,10 @@ export function AboutSection() {
           backgroundColor: '#F8F5EE',
         }}
       >
-        <div
-          className="container-luxury"
-          style={{
-            width: '100%',
-            paddingTop: 'clamp(5.8rem, 11vh, 7.8rem)',
-            paddingBottom: '2.5rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: 'clamp(3rem, 7vw, 7rem)',
-              alignItems: 'center',
-            }}
-          >
-            {/* Left Column: Pristine Visual Portrait Frame (Uncropped, Head Completely Visible, Zero Clutter) */}
-            <div style={{ position: 'relative', width: '100%', maxWidth: '460px', margin: '0 auto' }}>
+        <div className="container-luxury about-content-container">
+          <div className="about-grid-layout">
+            {/* Left Column: Pristine Visual Portrait Frame */}
+            <div className="about-visual-portrait-container">
               {/* Elegant Hairline Offset Accent Frame */}
               <div
                 className="about-accent-hairline-frame"
@@ -147,7 +137,6 @@ export function AboutSection() {
                     height: '100%',
                     objectFit: 'cover',
                     objectPosition: 'center top',
-                    transform: 'scale(1.0)',
                     display: 'block',
                   }}
                 />
@@ -155,30 +144,33 @@ export function AboutSection() {
             </div>
 
             {/* Right Column: Radical Minimalist Typographic Manifesto */}
-            <div style={{ maxWidth: '620px' }}>
+            <div className="about-text-column">
               {/* Category Pill Tag */}
-              <span
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  letterSpacing: '0.28em',
-                  textTransform: 'uppercase',
-                  color: 'var(--accent-gold)',
-                  display: 'inline-block',
-                  marginBottom: '2rem',
-                  fontFamily: '"Helvetica Now Text", "Helvetica Neue", Helvetica, Arial, sans-serif',
-                }}
-              >
-                {language === 'hu' ? 'A Grácia Filozófiája' : 'The Grácia Philosophy'}
-              </span>
+              <div className={`about-category-tag-wrapper ${isStackedMobile ? 'stacked' : ''}`}>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.28em',
+                    textTransform: 'uppercase',
+                    color: 'var(--accent-gold)',
+                    display: 'inline-block',
+                    fontFamily: '"Helvetica Now Text", "Helvetica Neue", Helvetica, Arial, sans-serif',
+                  }}
+                >
+                  {language === 'hu' ? 'A Grácia Filozófiája' : 'The Grácia Philosophy'}
+                </span>
+              </div>
 
               {/* Minimalist Progress Dashes */}
               <div
+                className={`about-progress-dashes ${isStackedMobile ? 'stacked' : ''}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  marginBottom: '2.5rem',
+                  opacity: isStackedMobile ? 0 : 1,
+                  transition: 'opacity 0.3s ease',
                 }}
               >
                 {[0, 1, 2].map((idx) => {
@@ -197,18 +189,10 @@ export function AboutSection() {
                 })}
               </div>
 
-              {/* Dynamic Manifesto Statements Swapping In Place - ZERO Cards, Pure Monumental Serif */}
-              <div
-                className="about-manifesto-stage"
-                style={{
-                  position: 'relative',
-                  minHeight: '220px',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
+              {/* DESKTOP MANIFESTO STAGE (visible on lg screens) */}
+              <div className="about-manifesto-stage-desktop">
                 {manifesto.map((item, index) => {
-                  const state = statementsState[index];
+                  const state = statementsDesktop[index];
                   return (
                     <div
                       key={item.id}
@@ -224,14 +208,50 @@ export function AboutSection() {
                       }}
                     >
                       <h2
-                        className="font-serif"
+                        className="font-serif about-manifesto-title"
                         style={{
-                          fontSize: 'clamp(2.4rem, 4.6vw, 4.2rem)',
                           lineHeight: 1.12,
                           letterSpacing: '-0.02em',
                           fontWeight: 400,
                           color: 'var(--text-main)',
                           margin: 0,
+                          textAlign: 'left',
+                        }}
+                      >
+                        {item.statement[language]}
+                      </h2>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* MOBILE MANIFESTO STAGE (visible on small screens) */}
+              <div className={`about-manifesto-stage-mobile ${isStackedMobile ? 'is-stacked' : ''}`}>
+                {manifesto.map((item, index) => {
+                  const isActive = index === activeIndex;
+                  return (
+                    <div
+                      key={item.id}
+                      className={`about-mobile-statement-item ${isActive ? 'is-active' : ''} ${
+                        isStackedMobile ? 'is-stacked' : ''
+                      }`}
+                      style={{
+                        transform: isStackedMobile
+                          ? `translateY(${index * 54 * stackProgress}px)`
+                          : (isActive ? 'translateY(0)' : 'translateY(14px)'),
+                        opacity: isStackedMobile ? 1 : (isActive ? 1 : 0),
+                        pointerEvents: isStackedMobile || isActive ? 'auto' : 'none',
+                      }}
+                    >
+                      <h2
+                        className="font-serif about-manifesto-mobile-title"
+                        style={{
+                          lineHeight: isStackedMobile ? 1.25 : 1.2,
+                          letterSpacing: '-0.02em',
+                          fontWeight: 400,
+                          color: 'var(--text-main)',
+                          margin: 0,
+                          textAlign: isStackedMobile ? 'left' : 'center',
                         }}
                       >
                         {item.statement[language]}
@@ -246,30 +266,111 @@ export function AboutSection() {
       </div>
 
       <style jsx global>{`
+        .about-scroll-track {
+          height: 170vh;
+        }
+        .about-content-container {
+          width: 100%;
+          padding-top: clamp(5.8rem, 11vh, 7.8rem);
+          padding-bottom: 2.5rem;
+        }
+        .about-grid-layout {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: clamp(3rem, 7vw, 7rem);
+          align-items: center;
+        }
+        .about-visual-portrait-container {
+          position: relative;
+          width: 100%;
+          max-width: 460px;
+          margin: 0 auto;
+        }
+        .about-text-column {
+          max-width: 620px;
+          width: 100%;
+        }
+        .about-category-tag-wrapper {
+          text-align: left;
+          margin-bottom: 2rem;
+        }
+        .about-progress-dashes {
+          justify-content: flex-start;
+          margin-bottom: 2.5rem;
+        }
+        .about-manifesto-stage-desktop {
+          position: relative;
+          min-height: 220px;
+          display: flex;
+          align-items: center;
+        }
+        .about-manifesto-title {
+          font-size: clamp(2.4rem, 4.6vw, 4.2rem);
+        }
+        .about-manifesto-stage-mobile {
+          display: none;
+        }
+
         @media (max-width: 1023px) {
           .about-scroll-track {
-            height: auto !important;
+            height: 220vh !important;
           }
-          .about-sticky-frame {
-            position: relative !important;
-            height: auto !important;
-            min-height: auto !important;
-            padding: 4.5rem 0 !important;
+          .about-content-container {
+            padding-top: 4.8rem !important;
+            padding-bottom: 2rem !important;
           }
-          .about-manifesto-stage {
-            position: relative !important;
-            min-height: auto !important;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 2rem !important;
+          .about-grid-layout {
+            grid-template-columns: 1fr !important;
+            gap: 1.25rem !important;
           }
-          .about-manifesto-stage > div {
-            position: relative !important;
-            opacity: 1 !important;
-            transform: none !important;
+          .about-visual-portrait-container {
+            max-width: 210px !important;
+            margin: 0 auto 0.75rem auto !important;
           }
           .about-accent-hairline-frame {
             display: none !important;
+          }
+          .about-text-column {
+            margin: 0 auto !important;
+          }
+          .about-category-tag-wrapper {
+            text-align: center !important;
+            margin-bottom: 0.75rem !important;
+          }
+          .about-category-tag-wrapper.stacked {
+            text-align: left !important;
+          }
+          .about-progress-dashes {
+            justify-content: center !important;
+            margin-bottom: 1.25rem !important;
+          }
+          .about-progress-dashes.stacked {
+            justify-content: flex-start !important;
+          }
+          .about-manifesto-stage-desktop {
+            display: none !important;
+          }
+          .about-manifesto-stage-mobile {
+            display: block !important;
+            position: relative;
+            min-height: 90px;
+            transition: min-height 0.3s ease;
+          }
+          .about-manifesto-stage-mobile.is-stacked {
+            min-height: 190px !important;
+          }
+          .about-mobile-statement-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          .about-manifesto-mobile-title {
+            font-size: clamp(1.4rem, 5.2vw, 1.85rem) !important;
+          }
+          .about-manifesto-stage-mobile.is-stacked .about-manifesto-mobile-title {
+            font-size: clamp(1.2rem, 4.2vw, 1.45rem) !important;
           }
         }
       `}</style>

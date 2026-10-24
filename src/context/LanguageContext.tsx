@@ -17,6 +17,7 @@ const LanguageContext = createContext<LanguageContextType>({
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('hu');
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('gracia_lang') as Language;
@@ -26,8 +27,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem('gracia_lang', lang);
+    if (lang === language) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setLanguageState(lang);
+      localStorage.setItem('gracia_lang', lang);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 40);
+    }, 130);
   };
 
   const toggleLanguage = () => {
@@ -37,7 +45,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage }}>
-      {children}
+      <div
+        className="language-transition-root"
+        style={{
+          opacity: isTransitioning ? 0.45 : 1,
+          transition: 'opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
+          minHeight: '100vh',
+          width: '100%',
+        }}
+      >
+        {children}
+      </div>
     </LanguageContext.Provider>
   );
 }

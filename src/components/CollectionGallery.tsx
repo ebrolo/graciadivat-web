@@ -13,10 +13,12 @@ export function CollectionGallery() {
   const [activeRowId, setActiveRowId] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
 
-  // Drag / Swipe tracking for Lightbox
+  // Drag / Swipe tracking for Lightbox with live finger following
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
   const isDragging = useRef(false);
+  const [dragOffset, setDragOffset] = useState<number>(0);
+  const [isSwiping, setIsSwiping] = useState(false);
 
   // Active row and images for lightbox
   const activeRow = gallery.rows.find((r) => r.id === activeRowId) || null;
@@ -59,27 +61,37 @@ export function CollectionGallery() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeRowId, handlePrevImage, handleNextImage]);
 
-  // Touch Swipe Handlers for Lightbox
+  // Touch Swipe Handlers for Lightbox with Real-Time Finger Following
   const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
     isDragging.current = true;
+    setIsSwiping(true);
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     touchStartX.current = clientX;
     touchEndX.current = clientX;
+    setDragOffset(0);
   };
 
   const handleTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
-    if (!isDragging.current) return;
+    if (!isDragging.current || touchStartX.current === null) return;
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     touchEndX.current = clientX;
+    const delta = clientX - touchStartX.current;
+    // Slight dampening if pulling beyond edges
+    const isAtStart = activeImageIndex === 0 && delta > 0;
+    const isAtEnd = activeImageIndex === currentImages.length - 1 && delta < 0;
+    const dampenedDelta = isAtStart || isAtEnd ? delta * 0.35 : delta;
+    setDragOffset(dampenedDelta);
   };
 
   const handleTouchEnd = () => {
     if (!isDragging.current || touchStartX.current === null || touchEndX.current === null) {
       isDragging.current = false;
+      setIsSwiping(false);
+      setDragOffset(0);
       return;
     }
     const diff = touchStartX.current - touchEndX.current;
-    const threshold = 40; // min swipe distance in px
+    const threshold = 50; // min swipe distance in px
 
     if (diff > threshold) {
       handleNextImage();
@@ -88,6 +100,8 @@ export function CollectionGallery() {
     }
 
     isDragging.current = false;
+    setIsSwiping(false);
+    setDragOffset(0);
     touchStartX.current = null;
     touchEndX.current = null;
   };
@@ -175,13 +189,16 @@ export function CollectionGallery() {
               <span
                 style={{
                   fontSize: '0.78rem',
-                  letterSpacing: '0.2em',
+                  letterSpacing: '0.14em',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   color: 'var(--accent-gold)',
+                  fontFamily: 'var(--font-sans)',
                 }}
               >
-                Grácia Editorial
+                {activeRow
+                  ? activeRow.subtitle[language] || activeRow.title[language]
+                  : (language === 'hu' ? 'Kollekció' : 'Collection')}
               </span>
               <span style={{ color: 'rgba(255, 255, 255, 0.3)' }}>•</span>
               <span style={{ fontSize: '0.8rem', letterSpacing: '0.15em', color: 'rgba(255, 255, 255, 0.7)' }}>
@@ -220,7 +237,7 @@ export function CollectionGallery() {
               overflow: 'hidden',
               display: 'flex',
               alignItems: 'center',
-              cursor: 'grab',
+              cursor: isSwiping ? 'grabbing' : 'grab',
             }}
             onClick={(e) => e.stopPropagation()}
             onTouchStart={handleTouchStart}
@@ -240,15 +257,15 @@ export function CollectionGallery() {
               <ChevronLeft size={24} />
             </button>
 
-            {/* Continuous Smooth Horizontal Sliding Track */}
+            {/* Continuous Smooth Horizontal Sliding Track with Live Touch Drag */}
             <div
               className="lightbox-carousel-track"
               style={{
                 display: 'flex',
                 width: '100%',
                 height: '100%',
-                transform: `translateX(-${activeImageIndex * 100}%)`,
-                transition: 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+                transform: `translateX(calc(-${activeImageIndex * 100}% + ${dragOffset}px))`,
+                transition: isSwiping ? 'none' : 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
               {currentImages.map((img, idx) => (
@@ -538,11 +555,10 @@ function PureVisualGalleryRow({
   const initialOffset = isEven ? -45 : 45;
   const translateX = isVisible ? 0 : initialOffset;
 
-  // Staggered Brick Pattern ("két kép között egy"):
-  // Odd rows are offset horizontally by half a card width + half gap
-  // Card width: clamp(240px, 22vw, 320px), gap: 1.5rem (24px).
-  // Half is clamp(132px, 11vw + 12px, 172px)
-  const brickPaddingLeft = isEven ? '0px' : 'clamp(132px, 11vw + 12px, 172px)';
+  // User requested: "a csusztatott sorok egy kepnyivel arrebblegyenek csusztatva, ugyanis jelenleg ezek a sorok a bal oldalon uresek igy. nem baj, hogy igy nem a legelso kep lesz a sor elejen."
+  const rowImages = !isEven && row.images.length > 1
+    ? [...row.images.slice(1), row.images[0]]
+    : row.images;
 
   return (
     <div
@@ -555,27 +571,15 @@ function PureVisualGalleryRow({
         willChange: 'opacity, transform',
       }}
     >
-      {/* Left Scroll Arrow */}
-      <button
-        onClick={scrollLeft}
-        aria-label="Scroll left"
-        className="row-hover-arrow left"
-      >
-        <ChevronLeft size={18} />
-      </button>
-
-      {/* Row Horizontal Scroller - Pure Photos with Staggered Brick Offset */}
+      {/* Row Horizontal Scroller - Pure Photos with Seamless Staggered Offset */}
       <div
         ref={containerRef}
         className="pure-gallery-scroll-container"
-        style={{
-          paddingLeft: brickPaddingLeft,
-        }}
       >
-        {row.images.map((img, index) => (
+        {rowImages.map((img, index) => (
           <div
             key={img.id}
-            onClick={() => onImageClick(index)}
+            onClick={() => onImageClick(!isEven && row.images.length > 1 ? (index + 1) % row.images.length : index)}
             className="gallery-photo-card"
           >
             <img
@@ -587,15 +591,6 @@ function PureVisualGalleryRow({
           </div>
         ))}
       </div>
-
-      {/* Right Scroll Arrow */}
-      <button
-        onClick={scrollRight}
-        aria-label="Scroll right"
-        className="row-hover-arrow right"
-      >
-        <ChevronRight size={18} />
-      </button>
     </div>
   );
 }
