@@ -173,39 +173,18 @@ export function CollectionGallery() {
             userSelect: 'none',
           }}
         >
-          {/* Top Bar: Counter & Close button */}
+          {/* Top Bar: Close button */}
           <div
             style={{
               width: '100%',
               maxWidth: '1300px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: 'flex-end',
               zIndex: 100,
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#FAF8F5' }}>
-              <span
-                style={{
-                  fontSize: '0.78rem',
-                  letterSpacing: '0.14em',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  color: 'var(--accent-gold)',
-                  fontFamily: 'var(--font-sans)',
-                }}
-              >
-                {activeRow
-                  ? activeRow.subtitle[language] || activeRow.title[language]
-                  : (language === 'hu' ? 'Kollekció' : 'Collection')}
-              </span>
-              <span style={{ color: 'rgba(255, 255, 255, 0.3)' }}>•</span>
-              <span style={{ fontSize: '0.8rem', letterSpacing: '0.15em', color: 'rgba(255, 255, 255, 0.7)' }}>
-                {activeImageIndex + 1} / {currentImages.length}
-              </span>
-            </div>
-
             <button
               onClick={closeLightbox}
               aria-label="Close Lightbox"

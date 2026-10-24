@@ -17,14 +17,14 @@ export function HeroLivingLookbook() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [heroTextRevealed, setHeroTextRevealed] = useState(false);
 
-  // Trigger delicate text reveal when preloader fades out (swift, confident luxury pace)
+  // Trigger delicate text reveal when preloader fades out (slow, cinematic luxury pace)
   useEffect(() => {
     let delayTimer: NodeJS.Timeout;
     const onLoaderFade = () => {
-      delayTimer = setTimeout(() => setHeroTextRevealed(true), 150);
+      delayTimer = setTimeout(() => setHeroTextRevealed(true), 350);
     };
     window.addEventListener('initial-loader-start-fade', onLoaderFade);
-    const fallbackTimer = setTimeout(() => setHeroTextRevealed(true), 900);
+    const fallbackTimer = setTimeout(() => setHeroTextRevealed(true), 1700);
     return () => {
       window.removeEventListener('initial-loader-start-fade', onLoaderFade);
       clearTimeout(delayTimer);
@@ -222,20 +222,21 @@ export function HeroLivingLookbook() {
         {/* ========================================================= */}
         {/* B. DARK OVERLAY AT SCROLL START (Darkened initial photo)   */}
         {/* ========================================================= */}
-        {darkOverlayOpacity > 0.01 && (
-          <div
-            className="hero-dark-initial-overlay"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              zIndex: 3,
-              backgroundColor: 'rgba(14, 11, 9, 0.58)',
-              opacity: darkOverlayOpacity / 0.55,
-              pointerEvents: 'none',
-              transition: 'opacity 0.1s linear',
-            }}
-          />
-        )}
+        <div
+          className="hero-dark-initial-overlay"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 3,
+            backgroundColor: 'rgba(14, 11, 9, 0.58)',
+            opacity: darkOverlayOpacity / 0.55,
+            pointerEvents: 'none',
+            transition: 'opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        />
+
+        {/* Mobile-only Bottom Light Gradient: seamlessly dissolves the bottom of the photo into cream */}
+        <div className="hero-mobile-bottom-fade" />
 
         {/* ========================================================= */}
         {/* C. FLOATING "GRÁCIA" TITLE (SWIMS TO LEFT ON SCROLL)       */}
@@ -254,7 +255,7 @@ export function HeroLivingLookbook() {
             pointerEvents: 'none',
             whiteSpace: 'nowrap',
             opacity: heroTextRevealed ? 1 : 0,
-            transition: 'opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: 'opacity 2.8s cubic-bezier(0.16, 1, 0.3, 1)',
             ['--hero-move' as any]: easedMove,
           }}
         >
@@ -294,7 +295,7 @@ export function HeroLivingLookbook() {
               maxWidth: '680px',
               opacity: heroTextRevealed ? openingSubtitleOpacity : 0,
               pointerEvents: 'none',
-              transition: 'opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.15s',
+              transition: 'opacity 3.2s cubic-bezier(0.16, 1, 0.3, 1) 0.6s',
             }}
           >
             <p
@@ -520,38 +521,45 @@ export function HeroLivingLookbook() {
             black 32%
           );
         }
+        .hero-mobile-bottom-fade {
+          display: none;
+        }
         @media (max-width: 1023px) {
           .hero-morphing-image-pane {
             left: 0% !important;
             width: 100% !important;
-            -webkit-mask-image: linear-gradient(
-              to bottom,
-              transparent 0%,
-              rgba(0, 0, 0, 0.4) 12%,
-              black 35%
-            );
-            mask-image: linear-gradient(
-              to bottom,
-              transparent 0%,
-              rgba(0, 0, 0, 0.4) 12%,
-              black 35%
-            );
+            mask-image: none !important;
+            -webkit-mask-image: none !important;
           }
           .hero-left-feather-overlay {
-            width: 100% !important;
-            height: 250px !important;
+            display: none !important;
+          }
+          .hero-mobile-bottom-fade {
+            display: block !important;
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: clamp(340px, 58vh, 480px) !important;
+            z-index: 8 !important;
+            pointer-events: none !important;
             background: linear-gradient(
-              to bottom,
-              #faf8f5 0%,
-              rgba(250, 248, 245, 0.85) 45%,
-              transparent 100%
-            );
+              to top,
+              #FAF8F5 0%,
+              #FAF8F5 28%,
+              rgba(250, 248, 245, 0.96) 48%,
+              rgba(250, 248, 245, 0.80) 68%,
+              rgba(250, 248, 245, 0.38) 86%,
+              rgba(250, 248, 245, 0) 100%
+            ) !important;
+            opacity: calc(min(1, max(0, (var(--hero-p, 0) - 0.04) * 3))) !important;
+            transition: opacity 0.15s linear !important;
           }
           .hero-floating-brand-title {
             left: 50% !important;
             top: 42% !important;
             transform: translate(-50%, -50%) scale(calc(1.18 * (1 - var(--hero-move, 0)) + 0.85 * var(--hero-move, 0))) !important;
-            opacity: calc(max(0, 1 - var(--hero-p, 0) * 3.6)) !important;
+            opacity: calc(max(0, 1 - var(--hero-p, 0) * 3.4)) !important;
           }
           .hero-opening-text-container {
             background: none !important;
@@ -568,11 +576,12 @@ export function HeroLivingLookbook() {
           .hero-dark-initial-overlay {
             background: linear-gradient(
               180deg,
-              rgba(14, 11, 9, 0.58) 0%,
-              rgba(14, 11, 9, 0.40) 40%,
-              rgba(14, 11, 9, 0.72) 100%
+              rgba(14, 11, 9, 0.54) 0%,
+              rgba(14, 11, 9, 0.38) 40%,
+              rgba(14, 11, 9, 0.68) 100%
             ) !important;
-            opacity: 1 !important;
+            opacity: calc(max(0, 1 - var(--hero-p, 0) * 2.8)) !important;
+            transition: opacity 0.15s linear !important;
           }
           .hero-split-content-container {
             top: auto !important;
@@ -584,53 +593,54 @@ export function HeroLivingLookbook() {
             justify-content: center !important;
             padding: 0 !important;
             pointer-events: auto !important;
-            opacity: 1 !important;
-            transform: translateY(calc(max(0%, (1 - min(1, max(0, (var(--hero-p, 0) - 0.15) / 0.50))) * 105%))) !important;
+            z-index: 15 !important;
+            transform: translateY(calc(max(0px, (1 - min(1, max(0, (var(--hero-p, 0) - 0.10) / 0.40))) * 45px))) !important;
+            opacity: calc(min(1, max(0, (var(--hero-p, 0) - 0.10) * 3.2))) !important;
             transition: none !important;
           }
           .hero-left-text-column {
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 !important;
-            padding: 1.35rem 1.25rem 1.75rem !important;
-            background: #FAF8F5 !important;
-            border-radius: 20px 20px 0 0 !important;
-            border-top: 1px solid rgba(197, 168, 128, 0.45) !important;
-            border-left: none !important;
-            border-right: none !important;
-            border-bottom: none !important;
-            box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.24) !important;
+            padding: 0 1.25rem clamp(1.25rem, 3.5vh, 2rem) !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
           }
           .hero-editorial-title {
-            font-size: clamp(1.15rem, 4.2vw, 1.4rem) !important;
-            line-height: 1.22 !important;
-            margin-bottom: 0.45rem !important;
+            font-size: clamp(1.22rem, 4.4vw, 1.48rem) !important;
+            line-height: 1.24 !important;
+            margin-bottom: 0.5rem !important;
             color: #141414 !important;
+            font-weight: 400 !important;
           }
           .hero-left-text-column .subtitle-editorial {
-            font-size: 0.82rem !important;
-            line-height: 1.45 !important;
-            margin-bottom: 1rem !important;
+            font-size: 0.84rem !important;
+            line-height: 1.5 !important;
+            margin-bottom: 1.15rem !important;
             color: #4A4642 !important;
           }
           .hero-action-buttons-wrap {
             display: flex !important;
             flex-direction: row !important;
-            gap: 0.65rem !important;
-            margin-bottom: 1rem !important;
+            gap: 0.75rem !important;
+            margin-bottom: 1.15rem !important;
           }
           .hero-left-text-column .btn-luxury-primary,
           .hero-left-text-column .btn-luxury-outline {
             flex: 1 1 0 !important;
-            padding: 0.72rem 0.5rem !important;
-            font-size: 0.75rem !important;
+            padding: 0.75rem 0.5rem !important;
+            font-size: 0.76rem !important;
             text-align: center !important;
             justify-content: center !important;
           }
           .hero-left-text-column .btn-luxury-outline {
-            background: #FAF8F5 !important;
-            border: 1px solid rgba(197, 168, 128, 0.7) !important;
+            background: rgba(250, 248, 245, 0.75) !important;
+            border: 1px solid rgba(197, 168, 128, 0.8) !important;
             color: #141414 !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
           }
           .hero-arrows-row {
             padding-top: 0.75rem !important;
