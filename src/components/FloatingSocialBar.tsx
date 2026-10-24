@@ -31,7 +31,8 @@ function TikTokIcon({ size = 18 }: { size?: number }) {
 
 export function FloatingSocialBar() {
   const socialLinks = siteData.social;
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const userInteractedRef = useRef(false);
   const containerRef = useRef<HTMLElement>(null);
 
   // Mobile Messenger Chathead Dragging State
@@ -44,6 +45,26 @@ export function FloatingSocialBar() {
     const updatePosition = () => {
       const bar = containerRef.current;
       if (!bar) return;
+
+      // Auto expand sidepanel ONLY after hero scroll has completed
+      const heroEl = document.getElementById('hero');
+      if (heroEl) {
+        const heroRect = heroEl.getBoundingClientRect();
+        // Hero scroll is complete when the bottom of hero track reaches the viewport bottom
+        const heroFinished = heroRect.bottom <= window.innerHeight + 5;
+
+        if (!userInteractedRef.current) {
+          if (heroFinished) {
+            setIsCollapsed(false);
+          } else {
+            setIsCollapsed(true);
+          }
+        } else if (!heroFinished && window.scrollY < 100) {
+          // If scrolled back to top, re-arm auto behavior and collapse
+          userInteractedRef.current = false;
+          setIsCollapsed(true);
+        }
+      }
 
       const mapEl =
         document.getElementById('contact-map-container') ||
@@ -250,6 +271,7 @@ export function FloatingSocialBar() {
             e.preventDefault();
             return;
           }
+          userInteractedRef.current = true;
           setIsCollapsed(!isCollapsed);
         }}
         aria-label={isCollapsed ? 'Közösségi ikonok megjelenítése' : 'Közösségi ikonok elrejtése'}

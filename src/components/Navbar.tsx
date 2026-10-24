@@ -90,6 +90,7 @@ export function Navbar() {
                 display: 'block',
                 margin: 0,
                 padding: 0,
+                paddingLeft: '2px',
               }}
             >
               {siteData.brand.submark}
@@ -101,32 +102,34 @@ export function Navbar() {
             style={{
               display: 'none',
               alignItems: 'center',
-              gap: '2rem',
+              gap: '2.2rem',
             }}
             className="desktop-nav"
           >
-            {siteData.navigation.links.map((link) => (
-              <a
-                key={link.id}
-                href={link.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavClick(link.href);
-                }}
-                style={{
-                  fontSize: '0.82rem',
-                  fontWeight: 500,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: 'var(--text-main)',
-                  position: 'relative',
-                  padding: '4px 0',
-                }}
-                className="nav-link-hover"
-              >
-                {link.label[language]}
-              </a>
-            ))}
+            {siteData.navigation.links
+              .filter((link) => link.id !== 'hero' && link.id !== 'about')
+              .map((link) => (
+                <a
+                  key={link.id}
+                  href={link.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(link.href);
+                  }}
+                  style={{
+                    fontSize: '0.82rem',
+                    fontWeight: 500,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'var(--text-main)',
+                    position: 'relative',
+                    padding: '4px 0',
+                  }}
+                  className="nav-link-hover"
+                >
+                  {link.label[language]}
+                </a>
+              ))}
           </nav>
 
           {/* Actions: Lang toggle & Phone Call */}
@@ -216,7 +219,9 @@ export function Navbar() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {siteData.navigation.links.map((link) => (
+            {siteData.navigation.links
+              .filter((link) => link.id !== 'hero' && link.id !== 'about')
+              .map((link) => (
               <a
                 key={link.id}
                 href={link.href}

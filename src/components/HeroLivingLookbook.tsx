@@ -17,14 +17,14 @@ export function HeroLivingLookbook() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [heroTextRevealed, setHeroTextRevealed] = useState(false);
 
-  // Trigger delicate text reveal when preloader fades out (slower, cinematic pace)
+  // Trigger delicate text reveal when preloader fades out (swift, confident luxury pace)
   useEffect(() => {
     let delayTimer: NodeJS.Timeout;
     const onLoaderFade = () => {
-      delayTimer = setTimeout(() => setHeroTextRevealed(true), 350);
+      delayTimer = setTimeout(() => setHeroTextRevealed(true), 150);
     };
     window.addEventListener('initial-loader-start-fade', onLoaderFade);
-    const fallbackTimer = setTimeout(() => setHeroTextRevealed(true), 1700);
+    const fallbackTimer = setTimeout(() => setHeroTextRevealed(true), 900);
     return () => {
       window.removeEventListener('initial-loader-start-fade', onLoaderFade);
       clearTimeout(delayTimer);
@@ -109,10 +109,7 @@ export function HeroLivingLookbook() {
   const titleG = Math.round(248 - 222 * easedMove);
   const titleB = Math.round(245 - 222 * easedMove);
   const titleColor = `rgb(${titleR}, ${titleG}, ${titleB})`;
-  const titleShadow =
-    easedMove < 0.45
-      ? `0 4px 28px rgba(0, 0, 0, ${0.85 * (1 - easedMove * 2.2)}), 0 2px 6px rgba(0, 0, 0, ${0.95 * (1 - easedMove * 2.2)})`
-      : 'none';
+  const titleShadow = 'none';
 
   // 4. Split Hero elements (Editorial subtitle, description, CTA buttons, arrows):
   // Fades in and slides up from p=0.38 to p=0.84 directly below the arriving GRÁCIA title
@@ -146,7 +143,7 @@ export function HeroLivingLookbook() {
         backgroundColor: '#FAF8F5',
       }}
     >
-      {/* Sticky Viewport Frame (Stays locked for the duration of the 260vh scroll) */}
+      {/* Sticky Viewport Frame (Stays locked for the duration of the 185vh scroll) */}
       <div
         className="hero-sticky-frame"
         style={{
@@ -156,6 +153,8 @@ export function HeroLivingLookbook() {
           width: '100%',
           overflow: 'hidden',
           backgroundColor: '#FAF8F5',
+          ['--hero-p' as any]: p,
+          ['--hero-move' as any]: easedMove,
         }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
@@ -255,7 +254,8 @@ export function HeroLivingLookbook() {
             pointerEvents: 'none',
             whiteSpace: 'nowrap',
             opacity: heroTextRevealed ? 1 : 0,
-            transition: 'opacity 2.8s cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: 'opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            ['--hero-move' as any]: easedMove,
           }}
         >
           <h1
@@ -294,7 +294,7 @@ export function HeroLivingLookbook() {
               maxWidth: '680px',
               opacity: heroTextRevealed ? openingSubtitleOpacity : 0,
               pointerEvents: 'none',
-              transition: 'opacity 3.2s cubic-bezier(0.16, 1, 0.3, 1) 0.6s',
+              transition: 'opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.15s',
             }}
           >
             <p
@@ -306,7 +306,7 @@ export function HeroLivingLookbook() {
                 color: '#FAF8F5',
                 lineHeight: 1.45,
                 margin: 0,
-                textShadow: '0 4px 20px rgba(0, 0, 0, 0.55)',
+                textShadow: 'none',
                 letterSpacing: '0.02em',
               }}
             >
@@ -415,6 +415,7 @@ export function HeroLivingLookbook() {
 
             {/* Action Buttons: "Kollekció" and "Itt találsz minket" */}
             <div
+              className="hero-action-buttons-wrap"
               style={{
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -442,6 +443,7 @@ export function HeroLivingLookbook() {
 
             {/* Minimalist Prev/Next Arrows ONLY */}
             <div
+              className="hero-arrows-row"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -545,32 +547,93 @@ export function HeroLivingLookbook() {
               transparent 100%
             );
           }
-          .hero-split-content-container {
-            align-items: flex-end !important;
-            justify-content: center !important;
-            padding-bottom: clamp(2.5rem, 5vh, 4rem) !important;
-          }
-          .hero-left-text-column {
-            padding-top: 1.35rem !important;
-            padding-bottom: 1.6rem !important;
-            padding-left: 1.35rem !important;
-            padding-right: 1.35rem !important;
-            margin: 0 1rem !important;
-            max-width: 440px !important;
-            background: linear-gradient(180deg, rgba(250, 248, 245, 0.95) 0%, rgba(250, 248, 245, 0.98) 100%) !important;
-            backdrop-filter: blur(14px) !important;
-            -webkit-backdrop-filter: blur(14px) !important;
-            border: 1px solid rgba(197, 168, 128, 0.45) !important;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22) !important;
-          }
           .hero-floating-brand-title {
             left: 50% !important;
-            transform: translate(-50%, -50%) !important;
+            top: 42% !important;
+            transform: translate(-50%, -50%) scale(calc(1.18 * (1 - var(--hero-move, 0)) + 0.85 * var(--hero-move, 0))) !important;
+            opacity: calc(max(0, 1 - var(--hero-p, 0) * 3.6)) !important;
           }
           .hero-opening-text-container {
-            background: radial-gradient(ellipse at center, rgba(14, 11, 9, 0.65) 0%, rgba(14, 11, 9, 0.3) 70%, transparent 100%) !important;
-            padding: 1.25rem 1rem !important;
-            border-radius: 8px !important;
+            background: none !important;
+            padding: 0 1rem !important;
+            border-radius: 0 !important;
+            top: calc(42% + 5rem) !important;
+            width: 90% !important;
+          }
+          .hero-opening-text-container p {
+            font-size: clamp(1rem, 4vw, 1.25rem) !important;
+            line-height: 1.4 !important;
+            text-shadow: none !important;
+          }
+          .hero-dark-initial-overlay {
+            background: linear-gradient(
+              180deg,
+              rgba(14, 11, 9, 0.58) 0%,
+              rgba(14, 11, 9, 0.40) 40%,
+              rgba(14, 11, 9, 0.72) 100%
+            ) !important;
+            opacity: 1 !important;
+          }
+          .hero-split-content-container {
+            top: auto !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: auto !important;
+            align-items: flex-end !important;
+            justify-content: center !important;
+            padding: 0 !important;
+            pointer-events: auto !important;
+            opacity: 1 !important;
+            transform: translateY(calc(max(0%, (1 - min(1, max(0, (var(--hero-p, 0) - 0.15) / 0.50))) * 105%))) !important;
+            transition: none !important;
+          }
+          .hero-left-text-column {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 1.35rem 1.25rem 1.75rem !important;
+            background: #FAF8F5 !important;
+            border-radius: 20px 20px 0 0 !important;
+            border-top: 1px solid rgba(197, 168, 128, 0.45) !important;
+            border-left: none !important;
+            border-right: none !important;
+            border-bottom: none !important;
+            box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.24) !important;
+          }
+          .hero-editorial-title {
+            font-size: clamp(1.15rem, 4.2vw, 1.4rem) !important;
+            line-height: 1.22 !important;
+            margin-bottom: 0.45rem !important;
+            color: #141414 !important;
+          }
+          .hero-left-text-column .subtitle-editorial {
+            font-size: 0.82rem !important;
+            line-height: 1.45 !important;
+            margin-bottom: 1rem !important;
+            color: #4A4642 !important;
+          }
+          .hero-action-buttons-wrap {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 0.65rem !important;
+            margin-bottom: 1rem !important;
+          }
+          .hero-left-text-column .btn-luxury-primary,
+          .hero-left-text-column .btn-luxury-outline {
+            flex: 1 1 0 !important;
+            padding: 0.72rem 0.5rem !important;
+            font-size: 0.75rem !important;
+            text-align: center !important;
+            justify-content: center !important;
+          }
+          .hero-left-text-column .btn-luxury-outline {
+            background: #FAF8F5 !important;
+            border: 1px solid rgba(197, 168, 128, 0.7) !important;
+            color: #141414 !important;
+          }
+          .hero-arrows-row {
+            padding-top: 0.75rem !important;
           }
         }
         .hero-bottom-gradient-mask {
