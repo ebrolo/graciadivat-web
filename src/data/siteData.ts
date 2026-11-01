@@ -6,6 +6,8 @@ export interface HeroLook {
   title: { hu: string; en: string };
   category: { hu: string; en: string };
   image: string;
+  objectPosition?: string;
+  mobileObjectPosition?: string;
 }
 
 export interface GalleryImage {
@@ -230,7 +232,9 @@ export const siteData: SiteData = {
           hu: "Haute Gala & Estélyi",
           en: "Haute Gala & Evening"
         },
-        image: "/images/hero/hero_look_01_black_satin.jpg"
+        image: "/images/hero/hero_look_01_black_satin.jpg",
+        objectPosition: "center 16%",
+        mobileObjectPosition: "center 16%"
       },
       {
         id: "look-02",
@@ -243,7 +247,9 @@ export const siteData: SiteData = {
           hu: "Bál & Szalagavató",
           en: "Prom & Grand Ball"
         },
-        image: "/images/hero/hero_look_02_pink_lace.jpg"
+        image: "/images/hero/hero_look_02_pink_lace.jpg",
+        objectPosition: "58% 16%",
+        mobileObjectPosition: "59% 16%"
       },
       {
         id: "look-03",
@@ -256,7 +262,9 @@ export const siteData: SiteData = {
           hu: "Koktél & Elegáns Események",
           en: "Cocktail & Day Soirée"
         },
-        image: "/images/hero/hero_look_03_periwinkle_blue.jpg"
+        image: "/images/hero/hero_look_03_periwinkle_blue.jpg",
+        objectPosition: "52% 16%",
+        mobileObjectPosition: "53% 16%"
       },
       {
         id: "look-04",
@@ -269,7 +277,9 @@ export const siteData: SiteData = {
           hu: "Party & Koktél Estély",
           en: "Party & Cocktail Glamour"
         },
-        image: "/images/hero/hero_look_04_navy_sequin.jpg"
+        image: "/images/hero/hero_look_04_navy_sequin.jpg",
+        objectPosition: "center 16%",
+        mobileObjectPosition: "center 16%"
       },
       {
         id: "look-05",
@@ -282,7 +292,9 @@ export const siteData: SiteData = {
           hu: "Koszorúslány & Nyári Bál",
           en: "Bridesmaid & Summer Gala"
         },
-        image: "/images/hero/hero_look_05_mint_turquoise.jpg"
+        image: "/images/hero/hero_look_05_mint_turquoise.jpg",
+        objectPosition: "center 16%",
+        mobileObjectPosition: "center 16%"
       },
       {
         id: "look-06",
@@ -295,7 +307,9 @@ export const siteData: SiteData = {
           hu: "Elegáns Hétköznapok & Családi Ünnep",
           en: "Refined Daywear & Family Occasions"
         },
-        image: "/images/hero/hero_look_06_mauve_floral.jpg"
+        image: "/images/hero/hero_look_06_mauve_floral.jpg",
+        objectPosition: "center 16%",
+        mobileObjectPosition: "center 16%"
       },
       {
         id: "look-07",
@@ -308,7 +322,9 @@ export const siteData: SiteData = {
           hu: "Koktél & Szalagavató Party",
           en: "Cocktail & After-Party"
         },
-        image: "/images/hero/hero_look_07_bronze_tulle.jpg"
+        image: "/images/hero/hero_look_07_bronze_tulle.jpg",
+        objectPosition: "center 16%",
+        mobileObjectPosition: "center 16%"
       }
     ]
   },

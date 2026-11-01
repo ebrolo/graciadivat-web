@@ -196,11 +196,13 @@ export function HeroLivingLookbook() {
                 <img
                   src={look.image}
                   alt={look.title[language]}
+                  className="hero-look-image"
                   style={{
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    objectPosition: 'center 16%',
+                    objectPosition: look.objectPosition || 'center 16%',
+                    ['--mobile-obj-pos' as any]: look.mobileObjectPosition || look.objectPosition || 'center 16%',
                   }}
                 />
               </div>
@@ -369,7 +371,7 @@ export function HeroLivingLookbook() {
             inset: 0,
             zIndex: 15,
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             pointerEvents: splitContentOpacity > 0.5 ? 'auto' : 'none',
             opacity: splitContentOpacity,
             transform: `translateY(${splitContentTranslateY}px)`,
@@ -382,10 +384,18 @@ export function HeroLivingLookbook() {
               maxWidth: '680px',
               paddingLeft: 'clamp(1.75rem, 5vw, 6rem)',
               paddingRight: 'clamp(1.5rem, 3.5vw, 3rem)',
-              paddingTop: 'clamp(15rem, 25vh, 19.5rem)',
+              paddingTop: 'calc(clamp(8.5rem, 15vh, 11.5rem) + clamp(3.6rem, 6.2vw, 5.8rem) * 0.95 + 2.75rem)',
               paddingBottom: '3rem',
             }}
           >
+            {/* Mobile-only GRÁCIA brand wordmark (appears after scroll above heading, left-aligned) */}
+            <div
+              className="hero-mobile-brand-title font-serif"
+              aria-hidden="true"
+            >
+              GRÁCIA
+            </div>
+
             {/* Editorial Heading */}
             <h2
               className="font-serif hero-editorial-title"
@@ -524,7 +534,13 @@ export function HeroLivingLookbook() {
         .hero-mobile-bottom-fade {
           display: none;
         }
+        .hero-mobile-brand-title {
+          display: none;
+        }
         @media (max-width: 1023px) {
+          .hero-look-image {
+            object-position: var(--mobile-obj-pos, center 16%) !important;
+          }
           .hero-morphing-image-pane {
             left: 0% !important;
             width: 100% !important;
@@ -559,7 +575,9 @@ export function HeroLivingLookbook() {
             left: 50% !important;
             top: 42% !important;
             transform: translate(-50%, -50%) scale(calc(1.18 * (1 - var(--hero-move, 0)) + 0.85 * var(--hero-move, 0))) !important;
-            opacity: calc(max(0, 1 - var(--hero-p, 0) * 3.4)) !important;
+            opacity: calc(max(0, 1 - var(--hero-p, 0) * 4.5)) !important;
+            transition: opacity 0.15s linear !important;
+            pointer-events: none !important;
           }
           .hero-opening-text-container {
             background: none !important;
@@ -607,6 +625,17 @@ export function HeroLivingLookbook() {
             border: none !important;
             box-shadow: none !important;
             border-radius: 0 !important;
+          }
+          .hero-mobile-brand-title {
+            display: block !important;
+            font-size: clamp(1.65rem, 5.8vw, 2.2rem) !important;
+            line-height: 1 !important;
+            letter-spacing: 0.05em !important;
+            font-weight: 400 !important;
+            color: #141414 !important;
+            margin-bottom: 0.45rem !important;
+            text-transform: uppercase !important;
+            text-align: left !important;
           }
           .hero-editorial-title {
             font-size: clamp(1.22rem, 4.4vw, 1.48rem) !important;
