@@ -77,7 +77,7 @@ export function Footer() {
       }}
     >
       <div className="container-luxury">
-        {/* Top Demonstration Notice Banner (Mandatory E-Brolo Rule 11) - Sharp Square */}
+        {/* Top Demonstration Notice Banner (Mandatory E-Brolo Rule 11) */}
         <div
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.04)',
@@ -130,28 +130,34 @@ export function Footer() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
             gap: '3rem',
             marginBottom: '4rem',
+            alignItems: 'center',
           }}
         >
-          {/* Brand Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Brand Column: ONLY large GRÁCIA wordmark centered, without description */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              padding: '1.5rem 0',
+            }}
+          >
             <span
               className="font-serif"
               style={{
-                fontSize: '2rem',
+                fontSize: 'clamp(2.8rem, 6.5vw, 4.4rem)',
                 fontWeight: 500,
-                letterSpacing: '0.22em',
+                letterSpacing: '0.24em',
                 lineHeight: 1,
                 color: '#FFFFFF',
+                textAlign: 'center',
+                display: 'block',
               }}
             >
               {brand.wordmark}
             </span>
-            <span style={{ fontSize: '0.72rem', letterSpacing: '0.18em', color: 'var(--accent-gold)', fontWeight: 600 }}>
-              {brand.submark}
-            </span>
-            <p style={{ fontSize: '0.88rem', lineHeight: 1.6, color: 'var(--text-on-dark-muted)', maxWidth: '340px' }}>
-              {footer.brandDescription[language]}
-            </p>
           </div>
 
           {/* Quick Navigation Links */}

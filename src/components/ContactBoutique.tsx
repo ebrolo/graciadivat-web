@@ -50,7 +50,7 @@ export function ContactBoutique() {
           </p>
         </div>
 
-        {/* 2 Column: Info Card & Embedded Interactive Map - Sharp Architecture */}
+        {/* 2 Column: Info Card & Embedded Interactive Map */}
         <div
           style={{
             display: 'grid',
@@ -73,8 +73,8 @@ export function ContactBoutique() {
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-              {/* Address */}
-              <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+              {/* Address: Strictly single line on mobile */}
+              <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
                 <div
                   style={{
                     width: '42px',
@@ -90,17 +90,26 @@ export function ContactBoutique() {
                 >
                   <MapPin size={20} />
                 </div>
-                <div>
-                  <h4 style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '0.35rem' }}>
+                <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                  <h4 style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '0.25rem' }}>
                     {contact.addressLabel[language]}
                   </h4>
-                  <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.4 }}>
+                  <p
+                    style={{
+                      fontSize: 'clamp(0.85rem, 3.8vw, 1.1rem)',
+                      fontWeight: 600,
+                      color: 'var(--text-main)',
+                      lineHeight: 1.3,
+                      whiteSpace: 'nowrap',
+                      margin: 0,
+                    }}
+                  >
                     {brand.address}
                   </p>
                 </div>
               </div>
 
-              {/* Opening Hours - Clean Tabular Layout */}
+              {/* Opening Hours - Single line per row, no hyphen wrap */}
               <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
                 <div
                   style={{
@@ -123,29 +132,39 @@ export function ContactBoutique() {
                   </h4>
                   <div
                     style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'minmax(120px, auto) 1fr',
-                      columnGap: '1.25rem',
-                      rowGap: '0.35rem',
-                      fontSize: '0.92rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.4rem',
+                      fontSize: 'clamp(0.82rem, 3vw, 0.92rem)',
+                      width: '100%',
                     }}
                   >
-                    <span style={{ color: 'var(--text-muted)' }}>
-                      {language === 'hu' ? 'Hétfő – Péntek:' : 'Monday – Friday:'}
-                    </span>
-                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>10:00 – 17:00</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', whiteSpace: 'nowrap', gap: '0.75rem' }}>
+                      <span style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                        {language === 'hu' ? 'Hétfő – Péntek:' : 'Monday – Friday:'}
+                      </span>
+                      <span style={{ fontWeight: 600, color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
+                        10:00 – 17:00
+                      </span>
+                    </div>
 
-                    <span style={{ color: 'var(--text-muted)' }}>
-                      {language === 'hu' ? 'Szombat:' : 'Saturday:'}
-                    </span>
-                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>10:00 – 13:00</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', whiteSpace: 'nowrap', gap: '0.75rem' }}>
+                      <span style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                        {language === 'hu' ? 'Szombat:' : 'Saturday:'}
+                      </span>
+                      <span style={{ fontWeight: 600, color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
+                        10:00 – 13:00
+                      </span>
+                    </div>
 
-                    <span style={{ color: 'var(--text-muted)' }}>
-                      {language === 'hu' ? 'Vasárnap:' : 'Sunday:'}
-                    </span>
-                    <span style={{ fontWeight: 500, color: 'var(--text-dim)' }}>
-                      {language === 'hu' ? 'Zárva' : 'Closed'}
-                    </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', whiteSpace: 'nowrap', gap: '0.75rem' }}>
+                      <span style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                        {language === 'hu' ? 'Vasárnap:' : 'Sunday:'}
+                      </span>
+                      <span style={{ fontWeight: 500, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
+                        {language === 'hu' ? 'Zárva' : 'Closed'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -181,8 +200,18 @@ export function ContactBoutique() {
               </div>
             </div>
 
-            {/* Actions - Interactive Hover Reveal Buttons (Compact & Left-Aligned) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', alignItems: 'flex-start' }}>
+            {/* Actions: Center-aligned on both PC and Mobile */}
+            <div
+              className="contact-actions-container"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.85rem',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+              }}
+            >
               <a
                 href={`tel:${brand.phone}`}
                 className="btn-interactive-reveal gold"
@@ -213,7 +242,7 @@ export function ContactBoutique() {
             </div>
           </div>
 
-          {/* Embedded Google Map - Sharp Border */}
+          {/* Embedded Google Map */}
           <div
             id="contact-map-container"
             style={{
@@ -254,9 +283,8 @@ export function ContactBoutique() {
           justify-content: center;
           height: 52px;
           width: fit-content;
-          min-width: 190px;
-          align-self: flex-start;
-          padding: 0 1.6rem;
+          min-width: 220px;
+          padding: 0 1.8rem;
           overflow: hidden;
           cursor: pointer;
           text-decoration: none;
@@ -314,6 +342,21 @@ export function ContactBoutique() {
           opacity: 1;
           margin-left: 0.65rem;
           transform: translateX(0);
+        }
+
+        /* Mobile specific overrides: Button text ALWAYS visible, buttons centered, address 1-line */
+        @media (max-width: 767px) {
+          .btn-interactive-reveal {
+            width: 100% !important;
+            max-width: 300px !important;
+            padding: 0 1.25rem !important;
+          }
+          .btn-reveal-text {
+            max-width: none !important;
+            opacity: 1 !important;
+            margin-left: 0.65rem !important;
+            transform: none !important;
+          }
         }
       `}</style>
     </section>

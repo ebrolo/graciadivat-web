@@ -62,17 +62,31 @@ export function AboutSection() {
     { opacity: op2, translateY: ty2 },
   ];
 
-  // Active index for indicator lines and mobile center cycle
+  // Active index for indicator lines and mobile spotlight cycle
   let activeIndex = 0;
-  if (p >= 0.54) {
+  if (p >= 0.52) {
     activeIndex = 2;
-  } else if (p >= 0.28) {
+  } else if (p >= 0.26) {
     activeIndex = 1;
   }
 
-  // Mobile Stack Phase: when user scrolls past (p >= 0.74), all 3 statements stack vertically
-  const isStackedMobile = p >= 0.74;
-  const stackProgress = Math.max(0, Math.min(1, (p - 0.74) / 0.18));
+  // Mobile spotlight statements calculation (one-by-one spotlight)
+  // Stage 1 (0 <= p <= 0.28): statement 0
+  // Stage 2 (0.28 < p <= 0.56): statement 1
+  // Stage 3 (0.56 < p <= 0.82): statement 2
+  const mobOp0 = p < 0.24 ? 1 : Math.max(0, 1 - (p - 0.24) / 0.08);
+  const mobOp1 = p < 0.26 ? 0 : p < 0.52 ? Math.min(1, (p - 0.26) / 0.08) : Math.max(0, 1 - (p - 0.52) / 0.08);
+  const mobOp2 = p < 0.54 ? 0 : Math.min(1, (p - 0.54) / 0.08);
+
+  const mobStatements = [
+    { opacity: mobOp0 },
+    { opacity: mobOp1 },
+    { opacity: mobOp2 },
+  ];
+
+  // Subtle luxury parallax & scale for the model portrait
+  const imageScale = 1.025 - 0.025 * p;
+  const imageTranslateY = p * 12;
 
   return (
     <div
@@ -103,7 +117,7 @@ export function AboutSection() {
       >
         <div className="container-luxury about-content-container">
           <div className="about-grid-layout">
-            {/* Left Column: Pristine Visual Portrait Frame */}
+            {/* Left Column: Pristine Visual Portrait Frame (Full 2:3 ratio, legs and shoes visible) */}
             <div className="about-visual-portrait-container">
               {/* Elegant Hairline Offset Accent Frame */}
               <div
@@ -117,14 +131,15 @@ export function AboutSection() {
                 }}
               />
 
-              {/* Main Visual Image Frame: 100% Clean, No Cards/Badges */}
+              {/* Main Visual Image Frame: 2/3 Aspect Ratio allows complete view without cropping */}
               <div
+                className="about-image-card-box"
                 style={{
                   overflow: 'hidden',
                   boxShadow: '0 24px 60px -15px rgba(26, 22, 18, 0.15)',
                   border: '1px solid rgba(197, 168, 128, 0.35)',
                   position: 'relative',
-                  aspectRatio: '3/4',
+                  aspectRatio: '2 / 3',
                   backgroundColor: '#F8F5EE',
                   zIndex: 2,
                 }}
@@ -136,8 +151,11 @@ export function AboutSection() {
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    objectPosition: 'center top',
+                    objectPosition: 'center 20%',
                     display: 'block',
+                    transform: `scale(${imageScale}) translateY(${imageTranslateY}px)`,
+                    transition: 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
+                    willChange: 'transform',
                   }}
                 />
               </div>
@@ -146,7 +164,7 @@ export function AboutSection() {
             {/* Right Column: Radical Minimalist Typographic Manifesto */}
             <div className="about-text-column">
               {/* Category Pill Tag */}
-              <div className={`about-category-tag-wrapper ${isStackedMobile ? 'stacked' : ''}`}>
+              <div className="about-category-tag-wrapper">
                 <span
                   style={{
                     fontSize: '0.72rem',
@@ -164,13 +182,11 @@ export function AboutSection() {
 
               {/* Minimalist Progress Dashes */}
               <div
-                className={`about-progress-dashes ${isStackedMobile ? 'stacked' : ''}`}
+                className="about-progress-dashes"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  opacity: isStackedMobile ? 0 : 1,
-                  transition: 'opacity 0.3s ease',
                 }}
               >
                 {[0, 1, 2].map((idx) => {
@@ -189,7 +205,7 @@ export function AboutSection() {
                 })}
               </div>
 
-              {/* DESKTOP MANIFESTO STAGE (visible on lg screens) */}
+              {/* DESKTOP MANIFESTO STAGE */}
               <div className="about-manifesto-stage-desktop">
                 {manifesto.map((item, index) => {
                   const state = statementsDesktop[index];
@@ -225,30 +241,81 @@ export function AboutSection() {
                 })}
               </div>
 
-              {/* MOBILE MANIFESTO STAGE (visible on small screens: sequential rows, large text, natural scroll) */}
-              <div className="about-manifesto-stage-mobile">
-                {manifesto.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="about-mobile-statement-row"
-                  >
-                    <span className="about-mobile-statement-num">
-                      0{index + 1}
-                    </span>
-                    <h2 className="font-serif about-manifesto-mobile-title">
-                      {item.statement[language]}
-                    </h2>
-                  </div>
-                ))}
+              {/* MOBILE SPOTLIGHT STAGE (Statements appear one by one in spotlight) */}
+              <div className="about-mobile-spotlight-box">
+                {manifesto.map((item, index) => {
+                  const st = mobStatements[index];
+                  return (
+                    <div
+                      key={item.id}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        opacity: st.opacity,
+                        pointerEvents: st.opacity > 0.5 ? 'auto' : 'none',
+                        transition: 'opacity 0.25s ease-out',
+                      }}
+                    >
+                      <h2
+                        className="font-serif about-manifesto-mobile-title"
+                        style={{
+                          lineHeight: 1.18,
+                          letterSpacing: '-0.015em',
+                          fontWeight: 400,
+                          color: 'var(--text-main)',
+                          margin: 0,
+                          textAlign: 'left',
+                        }}
+                      >
+                        {item.statement[language]}
+                      </h2>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* MOBILE SEQUENTIAL STACKED SECTION (Natural page scroll: after 3rd sentence has had its moment, page scrolls naturally into all 3 statements stacked row-by-row without numbers) */}
+      <div className="about-mobile-stacked-section">
+        <div className="container-luxury" style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem' }}>
+          <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+            <span
+              style={{
+                fontSize: '0.68rem',
+                fontWeight: 600,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'var(--accent-gold)',
+                display: 'inline-block',
+              }}
+            >
+              {language === 'hu' ? 'A Grácia Hitvallása' : 'The Grácia Creed'}
+            </span>
+          </div>
+
+          <div className="about-mobile-stacked-rows-container">
+            {manifesto.map((item) => (
+              <div
+                key={item.id}
+                className="about-mobile-statement-row"
+              >
+                <h2 className="font-serif about-manifesto-mobile-title">
+                  {item.statement[language]}
+                </h2>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <style jsx global>{`
         .about-scroll-track {
-          height: 170vh;
+          height: 180vh;
         }
         .about-content-container {
           width: 100%;
@@ -264,7 +331,7 @@ export function AboutSection() {
         .about-visual-portrait-container {
           position: relative;
           width: 100%;
-          max-width: 460px;
+          max-width: clamp(280px, 25vw, 380px);
           margin: 0 auto;
         }
         .about-text-column {
@@ -288,31 +355,36 @@ export function AboutSection() {
         .about-manifesto-title {
           font-size: clamp(2.4rem, 4.6vw, 4.2rem);
         }
-        .about-manifesto-stage-mobile {
+        .about-mobile-spotlight-box {
+          display: none;
+        }
+        .about-mobile-stacked-section {
           display: none;
         }
 
         @media (max-width: 1023px) {
           .about-scroll-track {
-            height: auto !important;
-            padding: clamp(3.5rem, 7vh, 5.5rem) 0 !important;
+            height: 220vh !important;
           }
           .about-sticky-frame {
-            position: relative !important;
-            height: auto !important;
-            min-height: auto !important;
-            display: block !important;
+            position: sticky !important;
+            top: 0 !important;
+            height: 100dvh !important;
+            min-height: 100dvh !important;
+            display: flex !important;
+            align-items: center !important;
+            z-index: 10 !important;
           }
           .about-content-container {
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
+            padding-top: 5rem !important;
+            padding-bottom: 1.5rem !important;
           }
           .about-grid-layout {
             grid-template-columns: 1fr !important;
-            gap: 2rem !important;
+            gap: 1.5rem !important;
           }
           .about-visual-portrait-container {
-            max-width: 250px !important;
+            max-width: 220px !important;
             margin: 0 auto !important;
           }
           .about-accent-hairline-frame {
@@ -324,39 +396,46 @@ export function AboutSection() {
           }
           .about-category-tag-wrapper {
             text-align: left !important;
-            margin-bottom: 1.25rem !important;
+            margin-bottom: 0.75rem !important;
           }
           .about-progress-dashes {
-            display: none !important;
+            display: flex !important;
+            margin-bottom: 1.25rem !important;
           }
           .about-manifesto-stage-desktop {
             display: none !important;
           }
-          .about-manifesto-stage-mobile {
+          .about-mobile-spotlight-box {
+            display: block !important;
+            position: relative !important;
+            min-height: 140px !important;
+            width: 100% !important;
+          }
+          .about-mobile-stacked-section {
+            display: block !important;
+            position: relative !important;
+            background-color: #F8F5EE !important;
+            padding-top: 3.5rem !important;
+            padding-bottom: 4.5rem !important;
+            border-top: 1px dashed rgba(197, 168, 128, 0.4) !important;
+            z-index: 20 !important;
+          }
+          .about-mobile-stacked-rows-container {
             display: flex !important;
             flex-direction: column !important;
-            gap: clamp(1.85rem, 4vh, 2.6rem) !important;
-            position: relative !important;
+            gap: 2.2rem !important;
             width: 100% !important;
           }
           .about-mobile-statement-row {
             display: flex !important;
             flex-direction: column !important;
-            gap: 0.45rem !important;
             padding-left: 1.25rem !important;
-            border-left: 2px solid rgba(197, 168, 128, 0.45) !important;
+            border-left: 2px solid var(--accent-gold) !important;
             text-align: left !important;
           }
-          .about-mobile-statement-num {
-            font-size: 0.72rem !important;
-            font-weight: 600 !important;
-            letter-spacing: 0.22em !important;
-            color: var(--accent-gold) !important;
-            text-transform: uppercase !important;
-          }
           .about-manifesto-mobile-title {
-            font-size: clamp(1.75rem, 6.8vw, 2.45rem) !important;
-            line-height: 1.18 !important;
+            font-size: clamp(1.75rem, 6.8vw, 2.35rem) !important;
+            line-height: 1.2 !important;
             letter-spacing: -0.015em !important;
             font-weight: 400 !important;
             color: var(--text-main) !important;

@@ -121,9 +121,9 @@ export function CollectionGallery() {
       {/* Anchor alias for #collection */}
       <div id="collection" style={{ position: 'relative', top: '-80px' }} />
 
-      {/* Full-Width Gallery Layout: 100% of left and right screen space */}
+      {/* Full-Width Gallery Layout */}
       <div style={{ width: '100%', paddingLeft: 'clamp(1rem, 3.5vw, 4rem)', paddingRight: 'clamp(1rem, 3.5vw, 4rem)' }}>
-        {/* Section Header: ONLY large text centered: Kollekció & Galéria */}
+        {/* Section Header: Large text centered: Kollekció & Galéria */}
         <div style={{ textAlign: 'center', marginBottom: 'clamp(3rem, 5vw, 4.5rem)' }}>
           <h2
             className="font-serif title-editorial"
@@ -152,7 +152,7 @@ export function CollectionGallery() {
         </div>
       </div>
 
-      {/* Fullscreen Lightbox Modal with Smooth Slide Track & Thumbnail Strip */}
+      {/* Fullscreen Lightbox Modal */}
       {activeRowId && currentImages.length > 0 && (
         <div
           className="lightbox-overlay"
@@ -206,7 +206,7 @@ export function CollectionGallery() {
             </button>
           </div>
 
-          {/* Central Image Viewport with Smooth Carousel Slide Track */}
+          {/* Central Image Viewport */}
           <div
             style={{
               position: 'relative',
@@ -236,7 +236,7 @@ export function CollectionGallery() {
               <ChevronLeft size={24} />
             </button>
 
-            {/* Continuous Smooth Horizontal Sliding Track with Live Touch Drag */}
+            {/* Continuous Smooth Horizontal Sliding Track */}
             <div
               className="lightbox-carousel-track"
               style={{
@@ -288,7 +288,7 @@ export function CollectionGallery() {
             </button>
           </div>
 
-          {/* Bottom Thumbnails Strip (Actual images: selected is bright, others dimmed) */}
+          {/* Bottom Thumbnails Strip */}
           <div
             className="lightbox-thumbnails-strip"
             onClick={(e) => e.stopPropagation()}
@@ -332,6 +332,13 @@ export function CollectionGallery() {
           padding: 0.5rem 0;
           scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
+          cursor: grab;
+          user-select: none;
+        }
+        .pure-gallery-scroll-container.is-dragging-mouse {
+          cursor: grabbing;
+          scroll-snap-type: none;
+          scroll-behavior: auto;
         }
         .pure-gallery-scroll-container::-webkit-scrollbar {
           display: none;
@@ -357,30 +364,11 @@ export function CollectionGallery() {
           height: 100%;
           object-fit: cover;
           object-position: center top;
+          pointer-events: none;
         }
-        .gallery-expand-arrow-btn {
-          width: 52px;
-          height: 52px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background-color: transparent;
-          border: 1px solid var(--border-light);
-          color: var(--text-main);
-          cursor: pointer;
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .gallery-expand-arrow-btn:hover {
-          background-color: var(--text-main);
-          color: #FFFFFF;
-          border-color: var(--text-main);
-          transform: translateY(2px);
-        }
-        .row-hover-arrow {
+        .row-nav-arrow {
           position: absolute;
           top: 50%;
-          transform: translateY(-50%);
           width: 44px;
           height: 44px;
           display: flex;
@@ -390,27 +378,46 @@ export function CollectionGallery() {
           backdrop-filter: blur(8px);
           border: 1px solid var(--border-light);
           color: var(--text-main);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
           cursor: pointer;
           z-index: 10;
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-          opacity: 0.85;
+          transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                      background-color 0.2s,
+                      color 0.2s;
         }
-        .pure-gallery-row-wrapper:hover .row-hover-arrow {
-          opacity: 1;
+        .row-nav-arrow.left {
+          left: -14px;
         }
-        .row-hover-arrow.left {
-          left: -12px;
+        .row-nav-arrow.right {
+          right: -14px;
         }
-        .row-hover-arrow.right {
-          right: -12px;
-        }
-        .row-hover-arrow:hover {
+        .row-nav-arrow:hover {
           background-color: var(--text-main);
           color: #FFFFFF;
           border-color: var(--text-main);
-          transform: translateY(-50%) scale(1.06);
         }
+
+        /* Mobile Adjustments: ~2.5 cards visible per row */
+        @media (max-width: 767px) {
+          .pure-gallery-scroll-container {
+            gap: 0.75rem !important;
+          }
+          .gallery-photo-card {
+            width: clamp(130px, 36.5vw, 155px) !important;
+          }
+          .row-nav-arrow {
+            width: 38px !important;
+            height: 38px !important;
+          }
+          .row-nav-arrow.left {
+            left: 2px !important;
+          }
+          .row-nav-arrow.right {
+            right: 2px !important;
+          }
+        }
+
         .lightbox-nav-arrow {
           position: absolute;
           top: 50%;
@@ -479,7 +486,7 @@ export function CollectionGallery() {
   );
 }
 
-// Subcomponent: Pure Visual Gallery Row with scroll entrance animation and staggered brick pattern!
+// Subcomponent: Pure Visual Gallery Row with dynamic edge-detecting arrows and desktop mouse drag
 function PureVisualGalleryRow({
   row,
   rowIndex,
@@ -494,6 +501,26 @@ function PureVisualGalleryRow({
   const containerRef = useRef<HTMLDivElement>(null);
   const rowWrapperRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  // Arrow visibility states
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  // Desktop mouse drag-to-scroll tracking
+  const isMouseDown = useRef(false);
+  const mouseStartX = useRef(0);
+  const mouseScrollLeft = useRef(0);
+  const dragDistance = useRef(0);
+  const [isDraggingMouse, setIsDraggingMouse] = useState(false);
+
+  // Update arrow states based on scroll position
+  const updateScrollButtons = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 15);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 15);
+  }, []);
 
   useEffect(() => {
     const el = rowWrapperRef.current;
@@ -515,26 +542,70 @@ function PureVisualGalleryRow({
     return () => observer.disconnect();
   }, []);
 
-  const scrollLeft = () => {
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    updateScrollButtons();
+    container.addEventListener('scroll', updateScrollButtons, { passive: true });
+    window.addEventListener('resize', updateScrollButtons);
+
+    return () => {
+      container.removeEventListener('scroll', updateScrollButtons);
+      window.removeEventListener('resize', updateScrollButtons);
+    };
+  }, [updateScrollButtons]);
+
+  const handleScrollLeft = () => {
     if (containerRef.current) {
-      containerRef.current.scrollBy({ left: -360, behavior: 'smooth' });
+      const scrollAmount = Math.max(260, containerRef.current.clientWidth * 0.75);
+      containerRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     }
   };
 
-  const scrollRight = () => {
+  const handleScrollRight = () => {
     if (containerRef.current) {
-      containerRef.current.scrollBy({ left: 360, behavior: 'smooth' });
+      const scrollAmount = Math.max(260, containerRef.current.clientWidth * 0.75);
+      containerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
 
-  // Alternating entry direction:
-  // Even rows (0, 2, 4...) come subtly from the left: -45px -> 0
-  // Odd rows (1, 3, 5...) come subtly from the right: +45px -> 0
+  // Mouse Drag Handlers for Desktop
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    isMouseDown.current = true;
+    mouseStartX.current = e.pageX - containerRef.current.offsetLeft;
+    mouseScrollLeft.current = containerRef.current.scrollLeft;
+    dragDistance.current = 0;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDown.current || !containerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const walk = x - mouseStartX.current;
+    dragDistance.current = Math.abs(walk);
+    if (Math.abs(walk) > 5) {
+      setIsDraggingMouse(true);
+    }
+    containerRef.current.scrollLeft = mouseScrollLeft.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    if (!isMouseDown.current) return;
+    isMouseDown.current = false;
+    setTimeout(() => {
+      setIsDraggingMouse(false);
+      dragDistance.current = 0;
+    }, 60);
+  };
+
+  // Alternating entry direction
   const isEven = rowIndex % 2 === 0;
   const initialOffset = isEven ? -45 : 45;
   const translateX = isVisible ? 0 : initialOffset;
 
-  // User requested: "a csusztatott sorok egy kepnyivel arrebblegyenek csusztatva, ugyanis jelenleg ezek a sorok a bal oldalon uresek igy. nem baj, hogy igy nem a legelso kep lesz a sor elejen."
+  // Staggered offset row images
   const rowImages = !isEven && row.images.length > 1
     ? [...row.images.slice(1), row.images[0]]
     : row.images;
@@ -550,15 +621,36 @@ function PureVisualGalleryRow({
         willChange: 'opacity, transform',
       }}
     >
-      {/* Row Horizontal Scroller - Pure Photos with Seamless Staggered Offset */}
+      {/* Left Navigation Arrow (Smooth Fade/Scale on bounds) */}
+      <button
+        onClick={handleScrollLeft}
+        aria-label="Previous photos"
+        className="row-nav-arrow left"
+        style={{
+          opacity: canScrollLeft ? 1 : 0,
+          pointerEvents: canScrollLeft ? 'auto' : 'none',
+          transform: `translateY(-50%) scale(${canScrollLeft ? 1 : 0.85})`,
+        }}
+      >
+        <ChevronLeft size={22} />
+      </button>
+
+      {/* Row Horizontal Scroller with Desktop Drag & Mobile Swipe */}
       <div
         ref={containerRef}
-        className="pure-gallery-scroll-container"
+        className={`pure-gallery-scroll-container ${isDraggingMouse ? 'is-dragging-mouse' : ''}`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
       >
         {rowImages.map((img, index) => (
           <div
             key={img.id}
-            onClick={() => onImageClick(!isEven && row.images.length > 1 ? (index + 1) % row.images.length : index)}
+            onClick={() => {
+              if (dragDistance.current > 8) return; // Prevent lightbox if user was dragging
+              onImageClick(!isEven && row.images.length > 1 ? (index + 1) % row.images.length : index);
+            }}
             className="gallery-photo-card"
           >
             <img
@@ -570,6 +662,20 @@ function PureVisualGalleryRow({
           </div>
         ))}
       </div>
+
+      {/* Right Navigation Arrow (Smooth Fade/Scale on bounds) */}
+      <button
+        onClick={handleScrollRight}
+        aria-label="Next photos"
+        className="row-nav-arrow right"
+        style={{
+          opacity: canScrollRight ? 1 : 0,
+          pointerEvents: canScrollRight ? 'auto' : 'none',
+          transform: `translateY(-50%) scale(${canScrollRight ? 1 : 0.85})`,
+        }}
+      >
+        <ChevronRight size={22} />
+      </button>
     </div>
   );
 }
