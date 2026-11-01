@@ -628,12 +628,12 @@ export function HeroLivingLookbook() {
           }
           .hero-mobile-brand-title {
             display: block !important;
-            font-size: clamp(1.65rem, 5.8vw, 2.2rem) !important;
-            line-height: 1 !important;
-            letter-spacing: 0.05em !important;
+            font-size: clamp(2.15rem, 8.4vw, 3.1rem) !important;
+            line-height: 0.98 !important;
+            letter-spacing: 0.04em !important;
             font-weight: 400 !important;
             color: #141414 !important;
-            margin-bottom: 0.45rem !important;
+            margin-bottom: 0.65rem !important;
             text-transform: uppercase !important;
             text-align: left !important;
           }

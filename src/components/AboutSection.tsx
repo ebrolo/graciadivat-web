@@ -225,40 +225,21 @@ export function AboutSection() {
                 })}
               </div>
 
-              {/* MOBILE MANIFESTO STAGE (visible on small screens) */}
-              <div className={`about-manifesto-stage-mobile ${isStackedMobile ? 'is-stacked' : ''}`}>
-                {manifesto.map((item, index) => {
-                  const isActive = index === activeIndex;
-                  return (
-                    <div
-                      key={item.id}
-                      className={`about-mobile-statement-item ${isActive ? 'is-active' : ''} ${
-                        isStackedMobile ? 'is-stacked' : ''
-                      }`}
-                      style={{
-                        transform: isStackedMobile
-                          ? `translateY(${index * 54 * stackProgress}px)`
-                          : (isActive ? 'translateY(0)' : 'translateY(14px)'),
-                        opacity: isStackedMobile ? 1 : (isActive ? 1 : 0),
-                        pointerEvents: isStackedMobile || isActive ? 'auto' : 'none',
-                      }}
-                    >
-                      <h2
-                        className="font-serif about-manifesto-mobile-title"
-                        style={{
-                          lineHeight: isStackedMobile ? 1.25 : 1.2,
-                          letterSpacing: '-0.02em',
-                          fontWeight: 400,
-                          color: 'var(--text-main)',
-                          margin: 0,
-                          textAlign: isStackedMobile ? 'left' : 'center',
-                        }}
-                      >
-                        {item.statement[language]}
-                      </h2>
-                    </div>
-                  );
-                })}
+              {/* MOBILE MANIFESTO STAGE (visible on small screens: sequential rows, large text, natural scroll) */}
+              <div className="about-manifesto-stage-mobile">
+                {manifesto.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="about-mobile-statement-row"
+                  >
+                    <span className="about-mobile-statement-num">
+                      0{index + 1}
+                    </span>
+                    <h2 className="font-serif about-manifesto-mobile-title">
+                      {item.statement[language]}
+                    </h2>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -313,64 +294,74 @@ export function AboutSection() {
 
         @media (max-width: 1023px) {
           .about-scroll-track {
-            height: 220vh !important;
+            height: auto !important;
+            padding: clamp(3.5rem, 7vh, 5.5rem) 0 !important;
+          }
+          .about-sticky-frame {
+            position: relative !important;
+            height: auto !important;
+            min-height: auto !important;
+            display: block !important;
           }
           .about-content-container {
-            padding-top: 4.8rem !important;
-            padding-bottom: 2rem !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
           }
           .about-grid-layout {
             grid-template-columns: 1fr !important;
-            gap: 1.25rem !important;
+            gap: 2rem !important;
           }
           .about-visual-portrait-container {
-            max-width: 210px !important;
-            margin: 0 auto 0.75rem auto !important;
+            max-width: 250px !important;
+            margin: 0 auto !important;
           }
           .about-accent-hairline-frame {
             display: none !important;
           }
           .about-text-column {
-            margin: 0 auto !important;
+            margin: 0 !important;
+            max-width: 100% !important;
           }
           .about-category-tag-wrapper {
-            text-align: center !important;
-            margin-bottom: 0.75rem !important;
-          }
-          .about-category-tag-wrapper.stacked {
             text-align: left !important;
-          }
-          .about-progress-dashes {
-            justify-content: center !important;
             margin-bottom: 1.25rem !important;
           }
-          .about-progress-dashes.stacked {
-            justify-content: flex-start !important;
+          .about-progress-dashes {
+            display: none !important;
           }
           .about-manifesto-stage-desktop {
             display: none !important;
           }
           .about-manifesto-stage-mobile {
-            display: block !important;
-            position: relative;
-            min-height: 90px;
-            transition: min-height 0.3s ease;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: clamp(1.85rem, 4vh, 2.6rem) !important;
+            position: relative !important;
+            width: 100% !important;
           }
-          .about-manifesto-stage-mobile.is-stacked {
-            min-height: 190px !important;
+          .about-mobile-statement-row {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.45rem !important;
+            padding-left: 1.25rem !important;
+            border-left: 2px solid rgba(197, 168, 128, 0.45) !important;
+            text-align: left !important;
           }
-          .about-mobile-statement-item {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+          .about-mobile-statement-num {
+            font-size: 0.72rem !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.22em !important;
+            color: var(--accent-gold) !important;
+            text-transform: uppercase !important;
           }
           .about-manifesto-mobile-title {
-            font-size: clamp(1.4rem, 5.2vw, 1.85rem) !important;
-          }
-          .about-manifesto-stage-mobile.is-stacked .about-manifesto-mobile-title {
-            font-size: clamp(1.2rem, 4.2vw, 1.45rem) !important;
+            font-size: clamp(1.75rem, 6.8vw, 2.45rem) !important;
+            line-height: 1.18 !important;
+            letter-spacing: -0.015em !important;
+            font-weight: 400 !important;
+            color: var(--text-main) !important;
+            margin: 0 !important;
+            text-align: left !important;
           }
         }
       `}</style>

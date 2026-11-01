@@ -39,6 +39,7 @@ export function FloatingSocialBar() {
   const containerRef = useRef<HTMLElement>(null);
   const dockSideRef = useRef<'left' | 'right'>('right');
   const mobileYRef = useRef<number | null>(null);
+  const lastTouchTimeRef = useRef(0);
 
   useEffect(() => {
     dockSideRef.current = dockSide;
@@ -221,7 +222,8 @@ export function FloatingSocialBar() {
     const { hasMoved, currentX, currentY } = dragRef.current;
 
     if (!hasMoved) {
-      // Tap detected -> Toggle expand / collapse
+      // Tap detected -> Toggle expand / collapse (with double-click protection)
+      lastTouchTimeRef.current = Date.now();
       dragRef.current = null;
       userInteractedRef.current = true;
       setIsCollapsed((prev) => !prev);
@@ -238,23 +240,29 @@ export function FloatingSocialBar() {
     const snapToLeft = barCenter < screenCenter;
     const nextDock = snapToLeft ? 'left' : 'right';
 
-    // Animate snap to edge with spring cubic-bezier
-    bar.style.transition =
-      'left 0.35s cubic-bezier(0.16, 1, 0.3, 1), right 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+    // Animate snap to edge using numeric 'left' for BOTH sides so CSS transitions smoothly!
+    const targetLeft = snapToLeft ? 8 : window.innerWidth - barWidth - 8;
 
-    if (snapToLeft) {
-      bar.style.left = '8px';
-      bar.style.right = 'auto';
-    } else {
-      bar.style.left = 'auto';
-      bar.style.right = '8px';
-    }
+    bar.style.transition =
+      'left 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+    bar.style.left = `${targetLeft}px`;
+    bar.style.right = 'auto';
     bar.style.top = `${currentY}px`;
     bar.style.bottom = 'auto';
 
     setDockSide(nextDock);
     setMobileY(currentY);
     dragRef.current = null;
+
+    // After animation finishes, if docked right, anchor to 'right: 8px' so opening/closing grows naturally inward
+    setTimeout(() => {
+      if (!containerRef.current) return;
+      if (dockSideRef.current === 'right') {
+        containerRef.current.style.transition = 'none';
+        containerRef.current.style.right = '8px';
+        containerRef.current.style.left = 'auto';
+      }
+    }, 360);
   };
 
   const getIcon = (id: string) => {
@@ -339,7 +347,8 @@ export function FloatingSocialBar() {
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
         onClick={(e) => {
-          if (dragRef.current?.hasMoved) {
+          // If a touch tap occurred within 450ms or a drag just moved, ignore synthetic desktop click
+          if (Date.now() - lastTouchTimeRef.current < 450 || dragRef.current?.hasMoved) {
             e.preventDefault();
             return;
           }
@@ -378,7 +387,7 @@ export function FloatingSocialBar() {
           -webkit-backdrop-filter: blur(8px);
           color: var(--accent-gold);
           border: 1px solid rgba(197, 168, 128, 0.45);
-          border-radius: 6px;
+          border-radius: 0 !important;
           cursor: pointer;
           transition: background-color 0.25s, color 0.25s, border-color 0.25s, transform 0.2s;
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -403,7 +412,7 @@ export function FloatingSocialBar() {
           -webkit-backdrop-filter: blur(8px);
           color: #FAF8F5;
           border: 1px solid rgba(197, 168, 128, 0.35);
-          border-radius: 6px;
+          border-radius: 0 !important;
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -444,10 +453,12 @@ export function FloatingSocialBar() {
           .floating-social-btn {
             width: 36px;
             height: 36px;
+            border-radius: 0 !important;
           }
           .floating-social-toggle-btn {
             width: 28px;
             height: 48px;
+            border-radius: 0 !important;
           }
           .social-tooltip {
             display: none;
