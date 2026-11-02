@@ -13,20 +13,48 @@ function ManifestoScrollRow({ statement }: { statement: string }) {
     const el = rowRef.current;
     if (!el) return;
 
+    const checkVisibility = () => {
+      const rect = el.getBoundingClientRect();
+      const windowH = window.innerHeight || document.documentElement.clientHeight;
+      // Trigger when element's top enters the comfortable viewing area (<= 78% of viewport height)
+      if (rect.top <= windowH * 0.78) {
+        setIsVisible(true);
+      } else if (rect.top > windowH * 0.92) {
+        // Reset when user scrolls back up past the element so re-scrolling triggers the fade again
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener('scroll', checkVisibility, { passive: true });
+    checkVisibility();
+
+    let lenisOff: (() => void) | undefined;
+    if (window.__lenis) {
+      window.__lenis.on('scroll', checkVisibility);
+      lenisOff = () => window.__lenis?.off('scroll', checkVisibility);
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
+        } else if (entry.boundingClientRect.top > (window.innerHeight || 800) * 0.85) {
+          setIsVisible(false);
         }
       },
       {
-        threshold: 0.15,
-        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.05,
+        rootMargin: '0px 0px -22% 0px',
       }
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+
+    return () => {
+      window.removeEventListener('scroll', checkVisibility);
+      if (lenisOff) lenisOff();
+      observer.disconnect();
+    };
   }, []);
 
   return (
@@ -35,8 +63,8 @@ function ManifestoScrollRow({ statement }: { statement: string }) {
       className="about-mobile-scroll-row"
       style={{
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(24px)',
-        transition: 'opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)',
+        transform: isVisible ? 'translateY(0)' : 'translateY(32px)',
+        transition: 'opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1)',
         willChange: 'opacity, transform',
       }}
     >
@@ -488,9 +516,9 @@ export function AboutSection() {
             display: flex !important;
             flex-direction: column !important;
             /* Nagy térköz a mondatok között, hogy az egész felületen elterüljenek */
-            gap: clamp(20vh, 26vh, 34vh) !important;
-            padding-top: clamp(14vh, 18vh, 24vh) !important;
-            padding-bottom: clamp(20vh, 26vh, 34vh) !important;
+            gap: clamp(28vh, 34vh, 42vh) !important;
+            padding-top: clamp(18vh, 22vh, 28vh) !important;
+            padding-bottom: clamp(22vh, 28vh, 36vh) !important;
             width: 100% !important;
           }
           .about-mobile-scroll-row {
