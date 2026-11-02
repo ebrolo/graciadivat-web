@@ -523,7 +523,7 @@ export function AboutSection() {
             position: relative !important;
             background-color: transparent !important;
             z-index: 20 !important;
-            margin-top: -38vh !important;
+            margin-top: -33vh !important;
           }
           .about-mobile-scroll-rows {
             display: flex !important;
