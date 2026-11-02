@@ -173,6 +173,9 @@ export function AboutSection() {
   // Dashes fade out along with the 3rd statement
   const dashesOpacityMobile = p < 0.68 ? 1 : Math.max(0, 1 - (p - 0.68) / 0.10);
 
+  // Horizontal image shift: starts slightly left, glides smoothly to the right (zero vertical movement)
+  const imgTranslateX = -14 + p * 20;
+
   return (
     <div
       id="about"
@@ -231,7 +234,7 @@ export function AboutSection() {
                     border: '1px solid rgba(197, 168, 128, 0.35)',
                     position: 'relative',
                     aspectRatio: '2 / 3',
-                    backgroundColor: '#F8F5EE',
+                    backgroundColor: '#D0C3BC',
                     zIndex: 2,
                     display: 'flex',
                     alignItems: 'center',
@@ -239,14 +242,18 @@ export function AboutSection() {
                   }}
                 >
                   <img
-                    src="/images/collection/846646474_1422651720063716_8159150398027964920_n.jpg"
+                    src="/images/collection/about-model-wide.jpg"
                     alt="Grácia Szalon Nyíregyháza - Elegáns Modell"
                     style={{
-                      width: '100%',
+                      width: 'auto',
                       height: '100%',
-                      objectFit: 'contain',
+                      maxWidth: 'none',
+                      objectFit: 'cover',
                       objectPosition: 'center center',
                       display: 'block',
+                      transform: `translateX(${imgTranslateX}px)`,
+                      transition: 'transform 0.15s ease-out',
+                      willChange: 'transform',
                     }}
                   />
                 </div>
@@ -515,10 +522,9 @@ export function AboutSection() {
           .about-mobile-scroll-rows {
             display: flex !important;
             flex-direction: column !important;
-            /* Nagy térköz a mondatok között, hogy az egész felületen elterüljenek */
-            gap: clamp(28vh, 34vh, 42vh) !important;
-            padding-top: clamp(18vh, 22vh, 28vh) !important;
-            padding-bottom: clamp(22vh, 28vh, 36vh) !important;
+            gap: clamp(3rem, 6.5vh, 4.5rem) !important;
+            padding-top: clamp(2rem, 4.5vh, 3.5rem) !important;
+            padding-bottom: clamp(3rem, 6.5vh, 4.8rem) !important;
             width: 100% !important;
           }
           .about-mobile-scroll-row {
