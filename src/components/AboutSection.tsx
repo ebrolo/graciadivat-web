@@ -5,7 +5,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { siteData } from '@/data/siteData';
 
 // Individual scroll-reveal row for the continuous downward page scroll
-function ManifestoScrollRow({ statement }: { statement: string }) {
+function ManifestoScrollRow({ statement, isUnlocked = true }: { statement: string; isUnlocked?: boolean }) {
   const rowRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -17,10 +17,11 @@ function ManifestoScrollRow({ statement }: { statement: string }) {
       const rect = el.getBoundingClientRect();
       const windowH = window.innerHeight || document.documentElement.clientHeight;
       // Trigger when element's top enters the comfortable viewing area (<= 78% of viewport height)
-      if (rect.top <= windowH * 0.78) {
+      // and when unlocked (centered sequence has finished)
+      if (rect.top <= windowH * 0.78 && isUnlocked) {
         setIsVisible(true);
-      } else if (rect.top > windowH * 0.92) {
-        // Reset when user scrolls back up past the element so re-scrolling triggers the fade again
+      } else if (rect.top > windowH * 0.92 || !isUnlocked) {
+        // Reset when user scrolls back up past the element or back into centered sequence
         setIsVisible(false);
       }
     };
@@ -36,9 +37,9 @@ function ManifestoScrollRow({ statement }: { statement: string }) {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && isUnlocked) {
           setIsVisible(true);
-        } else if (entry.boundingClientRect.top > (window.innerHeight || 800) * 0.85) {
+        } else if (entry.boundingClientRect.top > (window.innerHeight || 800) * 0.85 || !isUnlocked) {
           setIsVisible(false);
         }
       },
@@ -55,7 +56,7 @@ function ManifestoScrollRow({ statement }: { statement: string }) {
       if (lenisOff) lenisOff();
       observer.disconnect();
     };
-  }, []);
+  }, [isUnlocked]);
 
   return (
     <div
@@ -175,6 +176,9 @@ export function AboutSection() {
 
   // Horizontal image shift: starts slightly left, glides smoothly to the right (zero vertical movement)
   const imgTranslateX = -14 + p * 20;
+
+  // Mobile spotlight finished (centered statement 3 completely faded out)
+  const isUnlockedMobile = p >= 0.78;
 
   return (
     <div
@@ -391,6 +395,7 @@ export function AboutSection() {
               <ManifestoScrollRow
                 key={item.id}
                 statement={item.statement[language]}
+                isUnlocked={isUnlockedMobile}
               />
             ))}
           </div>
@@ -516,15 +521,16 @@ export function AboutSection() {
           .about-mobile-scroll-manifesto {
             display: block !important;
             position: relative !important;
-            background-color: #F8F5EE !important;
+            background-color: transparent !important;
             z-index: 20 !important;
+            margin-top: -38vh !important;
           }
           .about-mobile-scroll-rows {
             display: flex !important;
             flex-direction: column !important;
-            gap: clamp(3rem, 6.5vh, 4.5rem) !important;
-            padding-top: clamp(2rem, 4.5vh, 3.5rem) !important;
-            padding-bottom: clamp(3rem, 6.5vh, 4.8rem) !important;
+            gap: clamp(2rem, 4.5vh, 3.2rem) !important;
+            padding-top: 0 !important;
+            padding-bottom: clamp(3rem, 6vh, 4.5rem) !important;
             width: 100% !important;
           }
           .about-mobile-scroll-row {
