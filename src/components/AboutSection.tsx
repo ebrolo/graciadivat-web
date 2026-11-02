@@ -4,6 +4,49 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { siteData } from '@/data/siteData';
 
+// Separate observer row for smooth, individual row appearance in the scrolling manifesto
+function ManifestoRow({ statement }: { statement: string }) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      {
+        threshold: 0.15,
+        rootMargin: '0px 0px -40px 0px',
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={rowRef}
+      className="about-mobile-statement-row"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(16px)',
+        transition: 'opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+        willChange: 'opacity, transform',
+      }}
+    >
+      <h2 className="font-serif about-manifesto-mobile-title">
+        {statement}
+      </h2>
+    </div>
+  );
+}
+
 export function AboutSection() {
   const { language } = useLanguage();
   const { about } = siteData;
@@ -12,7 +55,7 @@ export function AboutSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Track scroll progress across scroll track
+  // Track scroll progress across the section track
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -62,7 +105,7 @@ export function AboutSection() {
     { opacity: op2, translateY: ty2 },
   ];
 
-  // Active index for indicator lines and mobile spotlight cycle
+  // Active index for indicator dashes
   let activeIndex = 0;
   if (p >= 0.52) {
     activeIndex = 2;
@@ -71,12 +114,24 @@ export function AboutSection() {
   }
 
   // Mobile spotlight statements calculation (one-by-one spotlight)
-  // Stage 1 (0 <= p <= 0.28): statement 0
-  // Stage 2 (0.28 < p <= 0.56): statement 1
-  // Stage 3 (0.56 < p <= 0.82): statement 2
-  const mobOp0 = p < 0.24 ? 1 : Math.max(0, 1 - (p - 0.24) / 0.08);
-  const mobOp1 = p < 0.26 ? 0 : p < 0.52 ? Math.min(1, (p - 0.26) / 0.08) : Math.max(0, 1 - (p - 0.52) / 0.08);
-  const mobOp2 = p < 0.54 ? 0 : Math.min(1, (p - 0.54) / 0.08);
+  // Statement 0: visible initially, fades out 0.20 -> 0.26
+  const mobOp0 = p < 0.20 ? 1 : Math.max(0, 1 - (p - 0.20) / 0.06);
+
+  // Statement 1: fades in 0.26 -> 0.32, holds, fades out 0.48 -> 0.54
+  const mobOp1 =
+    p < 0.26
+      ? 0
+      : p < 0.48
+      ? Math.min(1, (p - 0.26) / 0.06)
+      : Math.max(0, 1 - (p - 0.48) / 0.06);
+
+  // Statement 2: fades in 0.54 -> 0.60, holds, then cleanly fades out 0.74 -> 0.82
+  const mobOp2 =
+    p < 0.54
+      ? 0
+      : p < 0.74
+      ? Math.min(1, (p - 0.54) / 0.06)
+      : Math.max(0, 1 - (p - 0.74) / 0.08);
 
   const mobStatements = [
     { opacity: mobOp0 },
@@ -84,9 +139,12 @@ export function AboutSection() {
     { opacity: mobOp2 },
   ];
 
-  // Subtle luxury parallax & scale for the model portrait
-  const imageScale = 1.025 - 0.025 * p;
-  const imageTranslateY = p * 12;
+  // Dashes fade out smoothly as statement 3 fades out
+  const dashesOpacityMobile = p > 0.74 ? Math.max(0, 1 - (p - 0.74) / 0.08) : 1;
+
+  // Horizontal pan: The image stays firmly inside the frame, model placed slightly left initially,
+  // then glides gently from left to right as you scroll down.
+  const panOffset = -32 + p * 32;
 
   return (
     <div
@@ -117,7 +175,7 @@ export function AboutSection() {
       >
         <div className="container-luxury about-content-container">
           <div className="about-grid-layout">
-            {/* Left Column: Pristine Visual Portrait Frame (Full 2:3 ratio, legs and shoes visible) */}
+            {/* Left Column: Model Image (2:3 aspect ratio, legs/shoes 100% visible, stays firmly in place while gliding subtly from left to right) */}
             <div className="about-visual-portrait-container">
               {/* Elegant Hairline Offset Accent Frame */}
               <div
@@ -131,7 +189,7 @@ export function AboutSection() {
                 }}
               />
 
-              {/* Main Visual Image Frame: 2/3 Aspect Ratio allows complete view without cropping */}
+              {/* Main Visual Image Frame: 2/3 Aspect Ratio allows complete view of woman and gold heels */}
               <div
                 className="about-image-card-box"
                 style={{
@@ -148,12 +206,13 @@ export function AboutSection() {
                   src="/images/collection/846646474_1422651720063716_8159150398027964920_n.jpg"
                   alt="Grácia Szalon Nyíregyháza - Elegáns Modell"
                   style={{
-                    width: '100%',
+                    width: 'calc(100% + 32px)',
                     height: '100%',
+                    maxWidth: 'none',
                     objectFit: 'cover',
                     objectPosition: 'center 20%',
                     display: 'block',
-                    transform: `scale(${imageScale}) translateY(${imageTranslateY}px)`,
+                    transform: `translateX(${panOffset}px)`,
                     transition: 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
                     willChange: 'transform',
                   }}
@@ -187,6 +246,8 @@ export function AboutSection() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
+                  opacity: dashesOpacityMobile,
+                  transition: 'opacity 0.25s ease-out',
                 }}
               >
                 {[0, 1, 2].map((idx) => {
@@ -241,7 +302,7 @@ export function AboutSection() {
                 })}
               </div>
 
-              {/* MOBILE SPOTLIGHT STAGE (Statements appear one by one in spotlight) */}
+              {/* MOBILE SPOTLIGHT STAGE (Statements appear one-by-one taking turns, then 3rd sentence cleanly fades out) */}
               <div className="about-mobile-spotlight-box">
                 {manifesto.map((item, index) => {
                   const st = mobStatements[index];
@@ -280,34 +341,15 @@ export function AboutSection() {
         </div>
       </div>
 
-      {/* MOBILE SEQUENTIAL STACKED SECTION (Natural page scroll: after 3rd sentence has had its moment, page scrolls naturally into all 3 statements stacked row-by-row without numbers) */}
-      <div className="about-mobile-stacked-section">
-        <div className="container-luxury" style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem' }}>
-          <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
-            <span
-              style={{
-                fontSize: '0.68rem',
-                fontWeight: 600,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: 'var(--accent-gold)',
-                display: 'inline-block',
-              }}
-            >
-              {language === 'hu' ? 'A Grácia Hitvallása' : 'The Grácia Creed'}
-            </span>
-          </div>
-
-          <div className="about-mobile-stacked-rows-container">
+      {/* MOBILE SEQUENTIAL STACKED SECTION (Natural page scroll: after 3rd sentence has faded out, the page scrolls naturally, revealing the 3 sentences sequentially on the left side) */}
+      <div className="about-mobile-flow-section">
+        <div className="container-luxury" style={{ paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
+          <div className="about-mobile-flow-rows">
             {manifesto.map((item) => (
-              <div
+              <ManifestoRow
                 key={item.id}
-                className="about-mobile-statement-row"
-              >
-                <h2 className="font-serif about-manifesto-mobile-title">
-                  {item.statement[language]}
-                </h2>
-              </div>
+                statement={item.statement[language]}
+              />
             ))}
           </div>
         </div>
@@ -358,13 +400,13 @@ export function AboutSection() {
         .about-mobile-spotlight-box {
           display: none;
         }
-        .about-mobile-stacked-section {
+        .about-mobile-flow-section {
           display: none;
         }
 
         @media (max-width: 1023px) {
           .about-scroll-track {
-            height: 220vh !important;
+            height: 180vh !important;
           }
           .about-sticky-frame {
             position: sticky !important;
@@ -411,19 +453,19 @@ export function AboutSection() {
             min-height: 140px !important;
             width: 100% !important;
           }
-          .about-mobile-stacked-section {
+          /* Seamless natural continuation without any borders, background cuts, or "lap" feeling */
+          .about-mobile-flow-section {
             display: block !important;
             position: relative !important;
             background-color: #F8F5EE !important;
-            padding-top: 3.5rem !important;
+            padding-top: 1.5rem !important;
             padding-bottom: 4.5rem !important;
-            border-top: 1px dashed rgba(197, 168, 128, 0.4) !important;
             z-index: 20 !important;
           }
-          .about-mobile-stacked-rows-container {
+          .about-mobile-flow-rows {
             display: flex !important;
             flex-direction: column !important;
-            gap: 2.2rem !important;
+            gap: 2.4rem !important;
             width: 100% !important;
           }
           .about-mobile-statement-row {
