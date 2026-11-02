@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { siteData } from '@/data/siteData';
 
-// Separate observer row for smooth, individual row appearance with large spacing in the scrolling manifesto
+// Individual scroll-reveal row for the continuous downward page scroll
 function ManifestoScrollRow({ statement }: { statement: string }) {
   const rowRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -35,7 +35,7 @@ function ManifestoScrollRow({ statement }: { statement: string }) {
       className="about-mobile-scroll-row"
       style={{
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(22px)',
+        transform: isVisible ? 'translateY(0)' : 'translateY(24px)',
         transition: 'opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)',
         willChange: 'opacity, transform',
       }}
@@ -52,13 +52,13 @@ export function AboutSection() {
   const { about } = siteData;
   const manifesto = about.manifesto;
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const pinTrackRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Track scroll progress across the spotlight track
+  // Track scroll progress across the spotlight pinned track
   const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
+    if (!pinTrackRef.current) return;
+    const rect = pinTrackRef.current.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     const totalScroll = rect.height - windowHeight;
     if (totalScroll <= 0) return;
@@ -113,10 +113,11 @@ export function AboutSection() {
     activeIndex = 1;
   }
 
-  // -------------------------------------------------------------
-  // MOBILE SPOTLIGHT (CENTER-ALIGNED, ONE-BY-ONE, 3RD FADES OUT)
-  // -------------------------------------------------------------
-  // Statement 0: visible from 0.00 -> 0.18, fades out 0.18 -> 0.24
+  // ------------------------------------------------------------------
+  // 2. RÖVID RÖGZÍTÉS (Oldal nem mozdul)
+  // Középre zárt mondatok lejjebb pozicionálva: 1 -> 2 -> 3 (3. elhalványul és eltűnik)
+  // ------------------------------------------------------------------
+  // Statement 0: visible initially, fades out 0.18 -> 0.24
   const mobSpotOp0 = p < 0.18 ? 1 : Math.max(0, 1 - (p - 0.18) / 0.06);
 
   // Statement 1: fades in 0.22 -> 0.28, holds, fades out 0.44 -> 0.50
@@ -146,9 +147,7 @@ export function AboutSection() {
 
   return (
     <div
-      ref={containerRef}
       id="about"
-      className="about-scroll-track"
       style={{
         position: 'relative',
         width: '100%',
@@ -156,190 +155,200 @@ export function AboutSection() {
         borderTop: '1px solid rgba(197, 168, 128, 0.35)',
       }}
     >
-      {/* Sticky Viewport Frame - Spotlight Phase */}
+      {/* 2. Rövid rögzítés szakasza (Oldal nem mozdul) */}
       <div
-        className="about-sticky-frame"
+        ref={pinTrackRef}
+        className="about-pinned-track"
         style={{
-          position: 'sticky',
-          top: 0,
-          minHeight: '100dvh',
-          height: '100dvh',
+          position: 'relative',
           width: '100%',
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          backgroundColor: '#F8F5EE',
         }}
       >
-        <div className="container-luxury about-content-container">
-          <div className="about-grid-layout">
-            {/* Left Column: Model Image (2:3 aspect ratio, zoomed out, head and gold shoes 100% visible) */}
-            <div className="about-visual-portrait-container">
-              {/* Elegant Hairline Offset Accent Frame */}
-              <div
-                className="about-accent-hairline-frame"
-                style={{
-                  position: 'absolute',
-                  inset: '-14px -14px 14px 14px',
-                  border: '1px solid rgba(197, 168, 128, 0.45)',
-                  pointerEvents: 'none',
-                  zIndex: 1,
-                }}
-              />
-
-              {/* Main Visual Image Frame: Zoomed out, full view of woman from head to golden heels */}
-              <div
-                className="about-image-card-box"
-                style={{
-                  overflow: 'hidden',
-                  boxShadow: '0 24px 60px -15px rgba(26, 22, 18, 0.15)',
-                  border: '1px solid rgba(197, 168, 128, 0.35)',
-                  position: 'relative',
-                  aspectRatio: '2 / 3',
-                  backgroundColor: '#F8F5EE',
-                  zIndex: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <img
-                  src="/images/collection/846646474_1422651720063716_8159150398027964920_n.jpg"
-                  alt="Grácia Szalon Nyíregyháza - Elegáns Modell"
+        <div
+          className="about-sticky-frame"
+          style={{
+            position: 'sticky',
+            top: 0,
+            minHeight: '100dvh',
+            height: '100dvh',
+            width: '100%',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: '#F8F5EE',
+          }}
+        >
+          <div className="container-luxury about-content-container">
+            <div className="about-grid-layout">
+              {/* Kép: 100% látható (fej + cipő kényelmesen a keretben) */}
+              <div className="about-visual-portrait-container">
+                {/* Elegant Hairline Offset Accent Frame */}
+                <div
+                  className="about-accent-hairline-frame"
                   style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                    objectPosition: 'center center',
-                    display: 'block',
+                    position: 'absolute',
+                    inset: '-14px -14px 14px 14px',
+                    border: '1px solid rgba(197, 168, 128, 0.45)',
+                    pointerEvents: 'none',
+                    zIndex: 1,
                   }}
                 />
-              </div>
-            </div>
 
-            {/* Right Column: Typographic Manifesto Stage */}
-            <div className="about-text-column">
-              {/* Category Pill Tag */}
-              <div className="about-category-tag-wrapper">
-                <span
+                {/* Main Visual Image Frame: 2/3 ratio, zoomed out, full view of woman from head to golden heels */}
+                <div
+                  className="about-image-card-box"
                   style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
-                    letterSpacing: '0.28em',
-                    textTransform: 'uppercase',
-                    color: 'var(--accent-gold)',
-                    display: 'inline-block',
-                    fontFamily: '"Helvetica Now Text", "Helvetica Neue", Helvetica, Arial, sans-serif',
+                    overflow: 'hidden',
+                    boxShadow: '0 24px 60px -15px rgba(26, 22, 18, 0.15)',
+                    border: '1px solid rgba(197, 168, 128, 0.35)',
+                    position: 'relative',
+                    aspectRatio: '2 / 3',
+                    backgroundColor: '#F8F5EE',
+                    zIndex: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  {language === 'hu' ? 'A Grácia Filozófiája' : 'The Grácia Philosophy'}
-                </span>
+                  <img
+                    src="/images/collection/846646474_1422651720063716_8159150398027964920_n.jpg"
+                    alt="Grácia Szalon Nyíregyháza - Elegáns Modell"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      objectPosition: 'center center',
+                      display: 'block',
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* Minimalist Progress Dashes */}
-              <div
-                className="about-progress-dashes"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  opacity: dashesOpacityMobile,
-                  transition: 'opacity 0.25s ease-out',
-                }}
-              >
-                {[0, 1, 2].map((idx) => {
-                  const isActive = idx === activeIndex;
-                  return (
-                    <div
-                      key={idx}
-                      style={{
-                        height: '2px',
-                        width: isActive ? '36px' : '16px',
-                        backgroundColor: isActive ? 'var(--accent-gold)' : 'rgba(197, 168, 128, 0.3)',
-                        transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                      }}
-                    />
-                  );
-                })}
-              </div>
+              {/* Right Column: Typographic Manifesto Stage */}
+              <div className="about-text-column">
+                {/* Category Pill Tag */}
+                <div className="about-category-tag-wrapper">
+                  <span
+                    style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      letterSpacing: '0.28em',
+                      textTransform: 'uppercase',
+                      color: 'var(--accent-gold)',
+                      display: 'inline-block',
+                      fontFamily: '"Helvetica Now Text", "Helvetica Neue", Helvetica, Arial, sans-serif',
+                    }}
+                  >
+                    {language === 'hu' ? 'A Grácia Filozófiája' : 'The Grácia Philosophy'}
+                  </span>
+                </div>
 
-              {/* DESKTOP MANIFESTO STAGE */}
-              <div className="about-manifesto-stage-desktop">
-                {manifesto.map((item, index) => {
-                  const state = statementsDesktop[index];
-                  return (
-                    <div
-                      key={item.id}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        opacity: state.opacity,
-                        transform: `translateY(${state.translateY}px)`,
-                        pointerEvents: state.opacity > 0.5 ? 'auto' : 'none',
-                        transition: 'opacity 0.25s ease-out, transform 0.25s ease-out',
-                      }}
-                    >
-                      <h2
-                        className="font-serif about-manifesto-title"
+                {/* Minimalist Progress Dashes */}
+                <div
+                  className="about-progress-dashes"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    opacity: dashesOpacityMobile,
+                    transition: 'opacity 0.25s ease-out',
+                  }}
+                >
+                  {[0, 1, 2].map((idx) => {
+                    const isActive = idx === activeIndex;
+                    return (
+                      <div
+                        key={idx}
                         style={{
-                          lineHeight: 1.12,
-                          letterSpacing: '-0.02em',
-                          fontWeight: 400,
-                          color: 'var(--text-main)',
-                          margin: 0,
-                          textAlign: 'left',
+                          height: '2px',
+                          width: isActive ? '36px' : '16px',
+                          backgroundColor: isActive ? 'var(--accent-gold)' : 'rgba(197, 168, 128, 0.3)',
+                          transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* DESKTOP MANIFESTO STAGE */}
+                <div className="about-manifesto-stage-desktop">
+                  {manifesto.map((item, index) => {
+                    const state = statementsDesktop[index];
+                    return (
+                      <div
+                        key={item.id}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          opacity: state.opacity,
+                          transform: `translateY(${state.translateY}px)`,
+                          pointerEvents: state.opacity > 0.5 ? 'auto' : 'none',
+                          transition: 'opacity 0.25s ease-out, transform 0.25s ease-out',
                         }}
                       >
-                        {item.statement[language]}
-                      </h2>
-                    </div>
-                  );
-                })}
-              </div>
+                        <h2
+                          className="font-serif about-manifesto-title"
+                          style={{
+                            lineHeight: 1.12,
+                            letterSpacing: '-0.02em',
+                            fontWeight: 400,
+                            color: 'var(--text-main)',
+                            margin: 0,
+                            textAlign: 'left',
+                          }}
+                        >
+                          {item.statement[language]}
+                        </h2>
+                      </div>
+                    );
+                  })}
+                </div>
 
-              {/* MOBILE STAGE 1: Spotlight (CENTER ALIGNED, POSITIONED LOWER DOWN, ONE-BY-ONE, 3RD FADES OUT) */}
-              <div className="about-mobile-spotlight-box">
-                {manifesto.map((item, index) => {
-                  const st = mobSpotlight[index];
-                  return (
-                    <div
-                      key={item.id}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        opacity: st.opacity,
-                        pointerEvents: st.opacity > 0.5 ? 'auto' : 'none',
-                        transition: 'opacity 0.25s ease-out',
-                        textAlign: 'center',
-                      }}
-                    >
-                      <h2
-                        className="font-serif about-manifesto-mobile-title-center"
+                {/* MOBIL: Középre zárt mondatok lejjebb pozícionálva: 1 -> 2 -> 3 (A 3. mondat elhalványul és eltűnik) */}
+                <div className="about-mobile-spotlight-box">
+                  {manifesto.map((item, index) => {
+                    const st = mobSpotlight[index];
+                    return (
+                      <div
+                        key={item.id}
                         style={{
-                          lineHeight: 1.2,
-                          letterSpacing: '-0.015em',
-                          fontWeight: 400,
-                          color: 'var(--text-main)',
-                          margin: '0 auto',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          opacity: st.opacity,
+                          pointerEvents: st.opacity > 0.5 ? 'auto' : 'none',
+                          transition: 'opacity 0.25s ease-out',
                           textAlign: 'center',
                         }}
                       >
-                        {item.statement[language]}
-                      </h2>
-                    </div>
-                  );
-                })}
+                        <h2
+                          className="font-serif about-manifesto-mobile-title-center"
+                          style={{
+                            lineHeight: 1.22,
+                            letterSpacing: '-0.015em',
+                            fontWeight: 400,
+                            color: 'var(--text-main)',
+                            margin: '0 auto',
+                            textAlign: 'center',
+                          }}
+                        >
+                          {item.statement[language]}
+                        </h2>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* MOBILE STAGE 2: Natural Page Scroll with Generous Luxury Spacing across the page (Left-aligned, with gold line) */}
+      {/* 3. Rögzítés véget ér: A felhasználó az oldalt görgeti lefelé */}
+      {/* Folyamatos lefelé görgetés a Kollekció Galériára (Nincs külön lap!) */}
       <div className="about-mobile-scroll-manifesto">
         <div className="container-luxury" style={{ paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <div className="about-mobile-scroll-rows">
@@ -354,7 +363,7 @@ export function AboutSection() {
       </div>
 
       <style jsx global>{`
-        .about-scroll-track {
+        .about-pinned-track {
           height: 180vh;
         }
         .about-content-container {
@@ -403,8 +412,9 @@ export function AboutSection() {
         }
 
         @media (max-width: 1023px) {
-          .about-scroll-track {
-            height: 140vh !important;
+          /* 2. Rövid rögzítés: 135vh hosszon játszódik le a 3 középre zárt mondat, majd véget ér */
+          .about-pinned-track {
+            height: 135vh !important;
           }
           .about-sticky-frame {
             position: sticky !important;
@@ -448,13 +458,13 @@ export function AboutSection() {
             display: none !important;
           }
 
-          /* Mobile Spotlight: Center-aligned, shifted lower down for comfortable vertical balance */
+          /* Középre zárt mondatok lejjebb pozicionálva */
           .about-mobile-spotlight-box {
             display: block !important;
             position: relative !important;
             min-height: 120px !important;
             width: 100% !important;
-            margin-top: clamp(1.6rem, 3.8vh, 2.6rem) !important;
+            margin-top: clamp(1.8rem, 4.2vh, 2.8rem) !important;
           }
           .about-manifesto-mobile-title-center {
             font-size: clamp(1.55rem, 5.8vw, 2.1rem) !important;
@@ -467,7 +477,7 @@ export function AboutSection() {
             max-width: 320px !important;
           }
 
-          /* Mobile Scrolling Manifesto: Natural page scroll, generous spacing spreading out across the empty page */
+          /* 3. Folyamatos lefelé görgetés a Kollekció Galériára (Nincs külön lap!) */
           .about-mobile-scroll-manifesto {
             display: block !important;
             position: relative !important;
@@ -477,9 +487,10 @@ export function AboutSection() {
           .about-mobile-scroll-rows {
             display: flex !important;
             flex-direction: column !important;
-            gap: clamp(4.5rem, 14vh, 8.5rem) !important;
-            padding-top: clamp(3.5rem, 8vh, 5.5rem) !important;
-            padding-bottom: clamp(5.5rem, 14vh, 9rem) !important;
+            /* Nagy térköz a mondatok között, hogy az egész felületen elterüljenek */
+            gap: clamp(20vh, 26vh, 34vh) !important;
+            padding-top: clamp(14vh, 18vh, 24vh) !important;
+            padding-bottom: clamp(20vh, 26vh, 34vh) !important;
             width: 100% !important;
           }
           .about-mobile-scroll-row {
