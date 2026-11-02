@@ -4,6 +4,49 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { siteData } from '@/data/siteData';
 
+// Separate observer row for smooth, individual row appearance with large spacing in the scrolling manifesto
+function ManifestoScrollRow({ statement }: { statement: string }) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      {
+        threshold: 0.15,
+        rootMargin: '0px 0px -40px 0px',
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={rowRef}
+      className="about-mobile-scroll-row"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(22px)',
+        transition: 'opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)',
+        willChange: 'opacity, transform',
+      }}
+    >
+      <h2 className="font-serif about-manifesto-scroll-title">
+        {statement}
+      </h2>
+    </div>
+  );
+}
+
 export function AboutSection() {
   const { language } = useLanguage();
   const { about } = siteData;
@@ -12,7 +55,7 @@ export function AboutSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Track scroll progress across the section track
+  // Track scroll progress across the spotlight track
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -64,35 +107,33 @@ export function AboutSection() {
 
   // Active index for indicator dashes
   let activeIndex = 0;
-  if (p >= 0.28) {
+  if (p >= 0.50) {
     activeIndex = 2;
-  } else if (p >= 0.14) {
+  } else if (p >= 0.22) {
     activeIndex = 1;
   }
 
   // -------------------------------------------------------------
-  // MOBILE ANIMATION PHYSICS (Option A - All in-frame sequence)
+  // MOBILE SPOTLIGHT (CENTER-ALIGNED, ONE-BY-ONE, 3RD FADES OUT)
   // -------------------------------------------------------------
+  // Statement 0: visible from 0.00 -> 0.18, fades out 0.18 -> 0.24
+  const mobSpotOp0 = p < 0.18 ? 1 : Math.max(0, 1 - (p - 0.18) / 0.06);
 
-  // STAGE 1: Spotlight Phase (Center-aligned, one-by-one, 3rd fades out)
-  // Statement 0 (center): visible from 0.00 -> 0.10, fades out 0.10 -> 0.14
-  const mobSpotOp0 = p < 0.10 ? 1 : Math.max(0, 1 - (p - 0.10) / 0.04);
-
-  // Statement 1 (center): fades in 0.14 -> 0.18, holds 0.18 -> 0.24, fades out 0.24 -> 0.28
+  // Statement 1: fades in 0.22 -> 0.28, holds, fades out 0.44 -> 0.50
   const mobSpotOp1 =
-    p < 0.14
+    p < 0.22
       ? 0
-      : p < 0.24
-      ? Math.min(1, (p - 0.14) / 0.04)
-      : Math.max(0, 1 - (p - 0.24) / 0.04);
+      : p < 0.44
+      ? Math.min(1, (p - 0.22) / 0.06)
+      : Math.max(0, 1 - (p - 0.44) / 0.06);
 
-  // Statement 2 (center): fades in 0.28 -> 0.32, holds 0.32 -> 0.38, cleanly fades out 0.38 -> 0.44
+  // Statement 2: fades in 0.48 -> 0.54, holds, then completely fades out 0.68 -> 0.78
   const mobSpotOp2 =
-    p < 0.28
+    p < 0.48
       ? 0
-      : p < 0.38
-      ? Math.min(1, (p - 0.28) / 0.04)
-      : Math.max(0, 1 - (p - 0.38) / 0.06);
+      : p < 0.68
+      ? Math.min(1, (p - 0.48) / 0.06)
+      : Math.max(0, 1 - (p - 0.68) / 0.10);
 
   const mobSpotlight = [
     { opacity: mobSpotOp0 },
@@ -100,28 +141,8 @@ export function AboutSection() {
     { opacity: mobSpotOp2 },
   ];
 
-  // Dashes fade out with the 3rd statement
-  const dashesOpacityMobile = p < 0.38 ? 1 : Math.max(0, 1 - (p - 0.38) / 0.06);
-
-  // STAGE 2: Stacked Rows Phase (Left-aligned, sequential fade in under each other)
-  // Statement 0 (left-aligned): fades in 0.48 -> 0.58
-  const stackOp0 = p < 0.48 ? 0 : Math.min(1, (p - 0.48) / 0.10);
-
-  // Statement 1 (left-aligned): fades in 0.60 -> 0.72
-  const stackOp1 = p < 0.60 ? 0 : Math.min(1, (p - 0.60) / 0.10);
-
-  // Statement 2 (left-aligned): fades in 0.74 -> 0.86
-  const stackOp2 = p < 0.74 ? 0 : Math.min(1, (p - 0.74) / 0.10);
-
-  const stackOpacities = [stackOp0, stackOp1, stackOp2];
-
-  // Horizontal pan: The image stays firmly inside the frame.
-  // Model placed slightly left initially (-28px).
-  // Glides gently from left to right as you scroll.
-  // objectPosition: 'center bottom' ensures the feet and gold shoes are 100% visible!
-  const panOffset = -28 + p * 28;
-
-  const isStackedStage = p >= 0.46;
+  // Dashes fade out along with the 3rd statement
+  const dashesOpacityMobile = p < 0.68 ? 1 : Math.max(0, 1 - (p - 0.68) / 0.10);
 
   return (
     <div
@@ -135,7 +156,7 @@ export function AboutSection() {
         borderTop: '1px solid rgba(197, 168, 128, 0.35)',
       }}
     >
-      {/* Sticky Viewport Frame - Single cohesive container for entire section */}
+      {/* Sticky Viewport Frame - Spotlight Phase */}
       <div
         className="about-sticky-frame"
         style={{
@@ -152,7 +173,7 @@ export function AboutSection() {
       >
         <div className="container-luxury about-content-container">
           <div className="about-grid-layout">
-            {/* Left Column: Model Image (2:3 aspect ratio, legs/shoes 100% visible, stays firmly in place while gliding subtly from left to right) */}
+            {/* Left Column: Model Image (2:3 aspect ratio, zoomed out, head and gold shoes 100% visible) */}
             <div className="about-visual-portrait-container">
               {/* Elegant Hairline Offset Accent Frame */}
               <div
@@ -166,7 +187,7 @@ export function AboutSection() {
                 }}
               />
 
-              {/* Main Visual Image Frame: 2/3 Aspect Ratio allows complete view of woman and gold heels */}
+              {/* Main Visual Image Frame: Zoomed out, full view of woman from head to golden heels */}
               <div
                 className="about-image-card-box"
                 style={{
@@ -177,21 +198,20 @@ export function AboutSection() {
                   aspectRatio: '2 / 3',
                   backgroundColor: '#F8F5EE',
                   zIndex: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 <img
                   src="/images/collection/846646474_1422651720063716_8159150398027964920_n.jpg"
                   alt="Grácia Szalon Nyíregyháza - Elegáns Modell"
                   style={{
-                    width: 'calc(100% + 28px)',
+                    width: '100%',
                     height: '100%',
-                    maxWidth: 'none',
-                    objectFit: 'cover',
-                    objectPosition: 'center bottom',
+                    objectFit: 'contain',
+                    objectPosition: 'center center',
                     display: 'block',
-                    transform: `translateX(${panOffset}px)`,
-                    transition: 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
-                    willChange: 'transform',
                   }}
                 />
               </div>
@@ -279,15 +299,8 @@ export function AboutSection() {
                 })}
               </div>
 
-              {/* MOBILE STAGE 1: Spotlight (CENTER ALIGNED, ONE-BY-ONE, 3RD FADES OUT) */}
-              <div
-                className="about-mobile-spotlight-box"
-                style={{
-                  opacity: isStackedStage ? 0 : 1,
-                  pointerEvents: isStackedStage ? 'none' : 'auto',
-                  transition: 'opacity 0.3s ease-out',
-                }}
-              >
+              {/* MOBILE STAGE 1: Spotlight (CENTER ALIGNED, POSITIONED LOWER DOWN, ONE-BY-ONE, 3RD FADES OUT) */}
+              <div className="about-mobile-spotlight-box">
                 {manifesto.map((item, index) => {
                   const st = mobSpotlight[index];
                   return (
@@ -307,11 +320,11 @@ export function AboutSection() {
                       <h2
                         className="font-serif about-manifesto-mobile-title-center"
                         style={{
-                          lineHeight: 1.18,
+                          lineHeight: 1.2,
                           letterSpacing: '-0.015em',
                           fontWeight: 400,
                           color: 'var(--text-main)',
-                          margin: 0,
+                          margin: '0 auto',
                           textAlign: 'center',
                         }}
                       >
@@ -321,46 +334,21 @@ export function AboutSection() {
                   );
                 })}
               </div>
-
-              {/* MOBILE STAGE 2: Stacked Rows (LEFT ALIGNED, SEQUENTIAL FADE-IN UNDER EACH OTHER) */}
-              <div
-                className="about-mobile-stacked-box"
-                style={{
-                  opacity: isStackedStage ? 1 : 0,
-                  pointerEvents: isStackedStage ? 'auto' : 'none',
-                  transition: 'opacity 0.3s ease-out',
-                }}
-              >
-                {manifesto.map((item, index) => {
-                  const op = stackOpacities[index];
-                  return (
-                    <div
-                      key={item.id}
-                      className="about-mobile-stacked-row"
-                      style={{
-                        opacity: op,
-                        transform: `translateY(${Math.max(0, (1 - op) * 12)}px)`,
-                        transition: 'opacity 0.25s ease-out, transform 0.25s ease-out',
-                      }}
-                    >
-                      <h2
-                        className="font-serif about-manifesto-mobile-title-left"
-                        style={{
-                          lineHeight: 1.18,
-                          letterSpacing: '-0.015em',
-                          fontWeight: 400,
-                          color: 'var(--text-main)',
-                          margin: 0,
-                          textAlign: 'left',
-                        }}
-                      >
-                        {item.statement[language]}
-                      </h2>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MOBILE STAGE 2: Natural Page Scroll with Generous Luxury Spacing across the page (Left-aligned, with gold line) */}
+      <div className="about-mobile-scroll-manifesto">
+        <div className="container-luxury" style={{ paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
+          <div className="about-mobile-scroll-rows">
+            {manifesto.map((item) => (
+              <ManifestoScrollRow
+                key={item.id}
+                statement={item.statement[language]}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -410,13 +398,13 @@ export function AboutSection() {
         .about-mobile-spotlight-box {
           display: none;
         }
-        .about-mobile-stacked-box {
+        .about-mobile-scroll-manifesto {
           display: none;
         }
 
         @media (max-width: 1023px) {
           .about-scroll-track {
-            height: 250vh !important;
+            height: 140vh !important;
           }
           .about-sticky-frame {
             position: sticky !important;
@@ -460,16 +448,17 @@ export function AboutSection() {
             display: none !important;
           }
 
-          /* Mobile Spotlight: Center-aligned in spotlight */
+          /* Mobile Spotlight: Center-aligned, shifted lower down for comfortable vertical balance */
           .about-mobile-spotlight-box {
             display: block !important;
             position: relative !important;
-            min-height: 110px !important;
+            min-height: 120px !important;
             width: 100% !important;
+            margin-top: clamp(1.6rem, 3.8vh, 2.6rem) !important;
           }
           .about-manifesto-mobile-title-center {
             font-size: clamp(1.55rem, 5.8vw, 2.1rem) !important;
-            line-height: 1.2 !important;
+            line-height: 1.22 !important;
             letter-spacing: -0.015em !important;
             font-weight: 400 !important;
             color: var(--text-main) !important;
@@ -478,24 +467,30 @@ export function AboutSection() {
             max-width: 320px !important;
           }
 
-          /* Mobile Stacked: Left-aligned with gold left border, appearing under each other */
-          .about-mobile-stacked-box {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 1.15rem !important;
-            width: 100% !important;
+          /* Mobile Scrolling Manifesto: Natural page scroll, generous spacing spreading out across the empty page */
+          .about-mobile-scroll-manifesto {
+            display: block !important;
             position: relative !important;
-            margin-top: 0.5rem !important;
+            background-color: #F8F5EE !important;
+            z-index: 20 !important;
           }
-          .about-mobile-stacked-row {
+          .about-mobile-scroll-rows {
             display: flex !important;
             flex-direction: column !important;
-            padding-left: 1rem !important;
+            gap: clamp(4.5rem, 14vh, 8.5rem) !important;
+            padding-top: clamp(3.5rem, 8vh, 5.5rem) !important;
+            padding-bottom: clamp(5.5rem, 14vh, 9rem) !important;
+            width: 100% !important;
+          }
+          .about-mobile-scroll-row {
+            display: flex !important;
+            flex-direction: column !important;
+            padding-left: 1.35rem !important;
             border-left: 2px solid var(--accent-gold) !important;
             text-align: left !important;
           }
-          .about-manifesto-mobile-title-left {
-            font-size: clamp(1.3rem, 4.8vw, 1.7rem) !important;
+          .about-manifesto-scroll-title {
+            font-size: clamp(1.75rem, 6.8vw, 2.45rem) !important;
             line-height: 1.22 !important;
             letter-spacing: -0.015em !important;
             font-weight: 400 !important;
