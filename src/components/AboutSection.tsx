@@ -114,24 +114,24 @@ export function AboutSection() {
   }
 
   // Mobile spotlight statements calculation (one-by-one spotlight)
-  // Statement 0: visible initially, fades out 0.20 -> 0.26
-  const mobOp0 = p < 0.20 ? 1 : Math.max(0, 1 - (p - 0.20) / 0.06);
+  // Statement 0: visible initially, fades out 0.18 -> 0.24
+  const mobOp0 = p < 0.18 ? 1 : Math.max(0, 1 - (p - 0.18) / 0.06);
 
-  // Statement 1: fades in 0.26 -> 0.32, holds, fades out 0.48 -> 0.54
+  // Statement 1: fades in 0.24 -> 0.30, holds, fades out 0.46 -> 0.52
   const mobOp1 =
-    p < 0.26
+    p < 0.24
       ? 0
-      : p < 0.48
-      ? Math.min(1, (p - 0.26) / 0.06)
-      : Math.max(0, 1 - (p - 0.48) / 0.06);
+      : p < 0.46
+      ? Math.min(1, (p - 0.24) / 0.06)
+      : Math.max(0, 1 - (p - 0.46) / 0.06);
 
-  // Statement 2: fades in 0.54 -> 0.60, holds, then cleanly fades out 0.74 -> 0.82
+  // Statement 2: fades in 0.52 -> 0.58, holds, then cleanly fades out 0.70 -> 0.78
   const mobOp2 =
-    p < 0.54
+    p < 0.52
       ? 0
-      : p < 0.74
-      ? Math.min(1, (p - 0.54) / 0.06)
-      : Math.max(0, 1 - (p - 0.74) / 0.08);
+      : p < 0.70
+      ? Math.min(1, (p - 0.52) / 0.06)
+      : Math.max(0, 1 - (p - 0.70) / 0.08);
 
   const mobStatements = [
     { opacity: mobOp0 },
@@ -139,12 +139,12 @@ export function AboutSection() {
     { opacity: mobOp2 },
   ];
 
-  // Dashes fade out smoothly as statement 3 fades out
-  const dashesOpacityMobile = p > 0.74 ? Math.max(0, 1 - (p - 0.74) / 0.08) : 1;
+  // Dashes fade out smoothly along with statement 3
+  const dashesOpacityMobile = p > 0.70 ? Math.max(0, 1 - (p - 0.70) / 0.08) : 1;
 
-  // Horizontal pan: The image stays firmly inside the frame, model placed slightly left initially,
-  // then glides gently from left to right as you scroll down.
-  const panOffset = -32 + p * 32;
+  // Horizontal pan: The image stays firmly inside the frame, model placed slightly left initially (-36px),
+  // then glides gently from left to right as you scroll down. No vertical movement whatsoever.
+  const panOffset = -36 + p * 36;
 
   return (
     <div
@@ -206,7 +206,7 @@ export function AboutSection() {
                   src="/images/collection/846646474_1422651720063716_8159150398027964920_n.jpg"
                   alt="Grácia Szalon Nyíregyháza - Elegáns Modell"
                   style={{
-                    width: 'calc(100% + 32px)',
+                    width: 'calc(100% + 36px)',
                     height: '100%',
                     maxWidth: 'none',
                     objectFit: 'cover',
@@ -406,7 +406,7 @@ export function AboutSection() {
 
         @media (max-width: 1023px) {
           .about-scroll-track {
-            height: 180vh !important;
+            height: 170vh !important;
           }
           .about-sticky-frame {
             position: sticky !important;
@@ -460,6 +460,7 @@ export function AboutSection() {
             background-color: #F8F5EE !important;
             padding-top: 1.5rem !important;
             padding-bottom: 4.5rem !important;
+            border: none !important;
             z-index: 20 !important;
           }
           .about-mobile-flow-rows {
