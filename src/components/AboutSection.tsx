@@ -4,49 +4,6 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { siteData } from '@/data/siteData';
 
-// Separate observer row for smooth, individual row appearance in the scrolling manifesto
-function ManifestoRow({ statement }: { statement: string }) {
-  const rowRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const el = rowRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      {
-        threshold: 0.15,
-        rootMargin: '0px 0px -40px 0px',
-      }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div
-      ref={rowRef}
-      className="about-mobile-statement-row"
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(16px)',
-        transition: 'opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
-        willChange: 'opacity, transform',
-      }}
-    >
-      <h2 className="font-serif about-manifesto-mobile-title">
-        {statement}
-      </h2>
-    </div>
-  );
-}
-
 export function AboutSection() {
   const { language } = useLanguage();
   const { about } = siteData;
@@ -107,44 +64,64 @@ export function AboutSection() {
 
   // Active index for indicator dashes
   let activeIndex = 0;
-  if (p >= 0.52) {
+  if (p >= 0.28) {
     activeIndex = 2;
-  } else if (p >= 0.26) {
+  } else if (p >= 0.14) {
     activeIndex = 1;
   }
 
-  // Mobile spotlight statements calculation (one-by-one spotlight)
-  // Statement 0: visible initially, fades out 0.18 -> 0.24
-  const mobOp0 = p < 0.18 ? 1 : Math.max(0, 1 - (p - 0.18) / 0.06);
+  // -------------------------------------------------------------
+  // MOBILE ANIMATION PHYSICS (Option A - All in-frame sequence)
+  // -------------------------------------------------------------
 
-  // Statement 1: fades in 0.24 -> 0.30, holds, fades out 0.46 -> 0.52
-  const mobOp1 =
-    p < 0.24
+  // STAGE 1: Spotlight Phase (Center-aligned, one-by-one, 3rd fades out)
+  // Statement 0 (center): visible from 0.00 -> 0.10, fades out 0.10 -> 0.14
+  const mobSpotOp0 = p < 0.10 ? 1 : Math.max(0, 1 - (p - 0.10) / 0.04);
+
+  // Statement 1 (center): fades in 0.14 -> 0.18, holds 0.18 -> 0.24, fades out 0.24 -> 0.28
+  const mobSpotOp1 =
+    p < 0.14
       ? 0
-      : p < 0.46
-      ? Math.min(1, (p - 0.24) / 0.06)
-      : Math.max(0, 1 - (p - 0.46) / 0.06);
+      : p < 0.24
+      ? Math.min(1, (p - 0.14) / 0.04)
+      : Math.max(0, 1 - (p - 0.24) / 0.04);
 
-  // Statement 2: fades in 0.52 -> 0.58, holds, then cleanly fades out 0.70 -> 0.78
-  const mobOp2 =
-    p < 0.52
+  // Statement 2 (center): fades in 0.28 -> 0.32, holds 0.32 -> 0.38, cleanly fades out 0.38 -> 0.44
+  const mobSpotOp2 =
+    p < 0.28
       ? 0
-      : p < 0.70
-      ? Math.min(1, (p - 0.52) / 0.06)
-      : Math.max(0, 1 - (p - 0.70) / 0.08);
+      : p < 0.38
+      ? Math.min(1, (p - 0.28) / 0.04)
+      : Math.max(0, 1 - (p - 0.38) / 0.06);
 
-  const mobStatements = [
-    { opacity: mobOp0 },
-    { opacity: mobOp1 },
-    { opacity: mobOp2 },
+  const mobSpotlight = [
+    { opacity: mobSpotOp0 },
+    { opacity: mobSpotOp1 },
+    { opacity: mobSpotOp2 },
   ];
 
-  // Dashes fade out smoothly along with statement 3
-  const dashesOpacityMobile = p > 0.70 ? Math.max(0, 1 - (p - 0.70) / 0.08) : 1;
+  // Dashes fade out with the 3rd statement
+  const dashesOpacityMobile = p < 0.38 ? 1 : Math.max(0, 1 - (p - 0.38) / 0.06);
 
-  // Horizontal pan: The image stays firmly inside the frame, model placed slightly left initially (-36px),
-  // then glides gently from left to right as you scroll down. No vertical movement whatsoever.
-  const panOffset = -36 + p * 36;
+  // STAGE 2: Stacked Rows Phase (Left-aligned, sequential fade in under each other)
+  // Statement 0 (left-aligned): fades in 0.48 -> 0.58
+  const stackOp0 = p < 0.48 ? 0 : Math.min(1, (p - 0.48) / 0.10);
+
+  // Statement 1 (left-aligned): fades in 0.60 -> 0.72
+  const stackOp1 = p < 0.60 ? 0 : Math.min(1, (p - 0.60) / 0.10);
+
+  // Statement 2 (left-aligned): fades in 0.74 -> 0.86
+  const stackOp2 = p < 0.74 ? 0 : Math.min(1, (p - 0.74) / 0.10);
+
+  const stackOpacities = [stackOp0, stackOp1, stackOp2];
+
+  // Horizontal pan: The image stays firmly inside the frame.
+  // Model placed slightly left initially (-28px).
+  // Glides gently from left to right as you scroll.
+  // objectPosition: 'center bottom' ensures the feet and gold shoes are 100% visible!
+  const panOffset = -28 + p * 28;
+
+  const isStackedStage = p >= 0.46;
 
   return (
     <div
@@ -158,7 +135,7 @@ export function AboutSection() {
         borderTop: '1px solid rgba(197, 168, 128, 0.35)',
       }}
     >
-      {/* Sticky Viewport Frame */}
+      {/* Sticky Viewport Frame - Single cohesive container for entire section */}
       <div
         className="about-sticky-frame"
         style={{
@@ -206,11 +183,11 @@ export function AboutSection() {
                   src="/images/collection/846646474_1422651720063716_8159150398027964920_n.jpg"
                   alt="Grácia Szalon Nyíregyháza - Elegáns Modell"
                   style={{
-                    width: 'calc(100% + 36px)',
+                    width: 'calc(100% + 28px)',
                     height: '100%',
                     maxWidth: 'none',
                     objectFit: 'cover',
-                    objectPosition: 'center 20%',
+                    objectPosition: 'center bottom',
                     display: 'block',
                     transform: `translateX(${panOffset}px)`,
                     transition: 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -220,7 +197,7 @@ export function AboutSection() {
               </div>
             </div>
 
-            {/* Right Column: Radical Minimalist Typographic Manifesto */}
+            {/* Right Column: Typographic Manifesto Stage */}
             <div className="about-text-column">
               {/* Category Pill Tag */}
               <div className="about-category-tag-wrapper">
@@ -302,10 +279,17 @@ export function AboutSection() {
                 })}
               </div>
 
-              {/* MOBILE SPOTLIGHT STAGE (Statements appear one-by-one taking turns, then 3rd sentence cleanly fades out) */}
-              <div className="about-mobile-spotlight-box">
+              {/* MOBILE STAGE 1: Spotlight (CENTER ALIGNED, ONE-BY-ONE, 3RD FADES OUT) */}
+              <div
+                className="about-mobile-spotlight-box"
+                style={{
+                  opacity: isStackedStage ? 0 : 1,
+                  pointerEvents: isStackedStage ? 'none' : 'auto',
+                  transition: 'opacity 0.3s ease-out',
+                }}
+              >
                 {manifesto.map((item, index) => {
-                  const st = mobStatements[index];
+                  const st = mobSpotlight[index];
                   return (
                     <div
                       key={item.id}
@@ -317,10 +301,50 @@ export function AboutSection() {
                         opacity: st.opacity,
                         pointerEvents: st.opacity > 0.5 ? 'auto' : 'none',
                         transition: 'opacity 0.25s ease-out',
+                        textAlign: 'center',
                       }}
                     >
                       <h2
-                        className="font-serif about-manifesto-mobile-title"
+                        className="font-serif about-manifesto-mobile-title-center"
+                        style={{
+                          lineHeight: 1.18,
+                          letterSpacing: '-0.015em',
+                          fontWeight: 400,
+                          color: 'var(--text-main)',
+                          margin: 0,
+                          textAlign: 'center',
+                        }}
+                      >
+                        {item.statement[language]}
+                      </h2>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* MOBILE STAGE 2: Stacked Rows (LEFT ALIGNED, SEQUENTIAL FADE-IN UNDER EACH OTHER) */}
+              <div
+                className="about-mobile-stacked-box"
+                style={{
+                  opacity: isStackedStage ? 1 : 0,
+                  pointerEvents: isStackedStage ? 'auto' : 'none',
+                  transition: 'opacity 0.3s ease-out',
+                }}
+              >
+                {manifesto.map((item, index) => {
+                  const op = stackOpacities[index];
+                  return (
+                    <div
+                      key={item.id}
+                      className="about-mobile-stacked-row"
+                      style={{
+                        opacity: op,
+                        transform: `translateY(${Math.max(0, (1 - op) * 12)}px)`,
+                        transition: 'opacity 0.25s ease-out, transform 0.25s ease-out',
+                      }}
+                    >
+                      <h2
+                        className="font-serif about-manifesto-mobile-title-left"
                         style={{
                           lineHeight: 1.18,
                           letterSpacing: '-0.015em',
@@ -337,20 +361,6 @@ export function AboutSection() {
                 })}
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* MOBILE SEQUENTIAL STACKED SECTION (Natural page scroll: after 3rd sentence has faded out, the page scrolls naturally, revealing the 3 sentences sequentially on the left side) */}
-      <div className="about-mobile-flow-section">
-        <div className="container-luxury" style={{ paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
-          <div className="about-mobile-flow-rows">
-            {manifesto.map((item) => (
-              <ManifestoRow
-                key={item.id}
-                statement={item.statement[language]}
-              />
-            ))}
           </div>
         </div>
       </div>
@@ -400,13 +410,13 @@ export function AboutSection() {
         .about-mobile-spotlight-box {
           display: none;
         }
-        .about-mobile-flow-section {
+        .about-mobile-stacked-box {
           display: none;
         }
 
         @media (max-width: 1023px) {
           .about-scroll-track {
-            height: 170vh !important;
+            height: 250vh !important;
           }
           .about-sticky-frame {
             position: sticky !important;
@@ -418,15 +428,15 @@ export function AboutSection() {
             z-index: 10 !important;
           }
           .about-content-container {
-            padding-top: 5rem !important;
+            padding-top: 4.8rem !important;
             padding-bottom: 1.5rem !important;
           }
           .about-grid-layout {
             grid-template-columns: 1fr !important;
-            gap: 1.5rem !important;
+            gap: 1.25rem !important;
           }
           .about-visual-portrait-container {
-            max-width: 220px !important;
+            max-width: 200px !important;
             margin: 0 auto !important;
           }
           .about-accent-hairline-frame {
@@ -435,50 +445,58 @@ export function AboutSection() {
           .about-text-column {
             margin: 0 !important;
             max-width: 100% !important;
+            position: relative !important;
           }
           .about-category-tag-wrapper {
-            text-align: left !important;
-            margin-bottom: 0.75rem !important;
+            text-align: center !important;
+            margin-bottom: 0.65rem !important;
           }
           .about-progress-dashes {
             display: flex !important;
-            margin-bottom: 1.25rem !important;
+            justify-content: center !important;
+            margin-bottom: 1rem !important;
           }
           .about-manifesto-stage-desktop {
             display: none !important;
           }
+
+          /* Mobile Spotlight: Center-aligned in spotlight */
           .about-mobile-spotlight-box {
             display: block !important;
             position: relative !important;
-            min-height: 140px !important;
+            min-height: 110px !important;
             width: 100% !important;
           }
-          /* Seamless natural continuation without any borders, background cuts, or "lap" feeling */
-          .about-mobile-flow-section {
-            display: block !important;
+          .about-manifesto-mobile-title-center {
+            font-size: clamp(1.55rem, 5.8vw, 2.1rem) !important;
+            line-height: 1.2 !important;
+            letter-spacing: -0.015em !important;
+            font-weight: 400 !important;
+            color: var(--text-main) !important;
+            margin: 0 auto !important;
+            text-align: center !important;
+            max-width: 320px !important;
+          }
+
+          /* Mobile Stacked: Left-aligned with gold left border, appearing under each other */
+          .about-mobile-stacked-box {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 1.15rem !important;
+            width: 100% !important;
             position: relative !important;
-            background-color: #F8F5EE !important;
-            padding-top: 1.5rem !important;
-            padding-bottom: 4.5rem !important;
-            border: none !important;
-            z-index: 20 !important;
+            margin-top: 0.5rem !important;
           }
-          .about-mobile-flow-rows {
+          .about-mobile-stacked-row {
             display: flex !important;
             flex-direction: column !important;
-            gap: 2.4rem !important;
-            width: 100% !important;
-          }
-          .about-mobile-statement-row {
-            display: flex !important;
-            flex-direction: column !important;
-            padding-left: 1.25rem !important;
+            padding-left: 1rem !important;
             border-left: 2px solid var(--accent-gold) !important;
             text-align: left !important;
           }
-          .about-manifesto-mobile-title {
-            font-size: clamp(1.75rem, 6.8vw, 2.35rem) !important;
-            line-height: 1.2 !important;
+          .about-manifesto-mobile-title-left {
+            font-size: clamp(1.3rem, 4.8vw, 1.7rem) !important;
+            line-height: 1.22 !important;
             letter-spacing: -0.015em !important;
             font-weight: 400 !important;
             color: var(--text-main) !important;
